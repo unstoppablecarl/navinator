@@ -446,8 +446,6 @@ class Collection implements \Countable, \ArrayAccess{
         $orphans = array();
         foreach($this->nodes as $path => $node){
             $parentPath = $node->getParentPath();
-
-
             if($node->getDepth() > 1 && !$this->hasNode($parentPath)){
                 $orphans[$path] = $node;
             }
