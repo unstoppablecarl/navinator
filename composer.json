@@ -12,9 +12,7 @@
     ],
     "minimum-stability": "dev",
     "require": {
-        "php": ">=5.3",
-        "phpunit/phpunit": "3.7.21",
-        "phpdocumentor/phpdocumentor": "dev-release-2.0"
+        "php": ">=5.3"
     },
     "autoload": {
         "psr-0": {
