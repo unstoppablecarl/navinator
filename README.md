@@ -80,6 +80,89 @@ The following example generates a simple navigation tree.
   ));
   $collection->addNode($node, 1);
 
+  $templateData = $collection->prepareForNavTemplate();
+    
+  print_r($templateData);
+  
+// output
+// the following node array keys are replaced by [...] to make this example easier to read:
+//  - template_data
+//  - is_first_child
+//  - is_last_child
+//  - is_current_root
+//  - is_current
+//  - is_current_ancestor
+  
+  
+//  Array
+//(
+//    [0] => Array
+//        (
+//            [url] => /my-favorite-sites/
+//            [path] => my-favorite-sites
+//            [display_name] => my-favorite-sites
+//            [depth] => 1
+//            [...],
+//            [children] => Array
+//                (
+//                    [0] => Array
+//                        (
+//                            [url] => http://google.com
+//                            [path] => my-favorite-sites/google
+//                            [display_name] => Google Search
+//                            [depth] => 2
+//                            [...],
+//                            [children] => Array
+//                                (
+//                                    [0] => Array
+//                                        (
+//                                            [url] => https://mail.google.com
+//                                            [path] => my-favorite-sites/google/gmail
+//                                            [display_name] => gmail
+//                                            [depth] => 3
+//                                            [...],
+//                                            [children] => Array()
+//                                            [display_order] => 1
+//                                        )
+//                                    [1] => Array
+//                                        (
+//                                            [url] => https://www.google.com/maps/
+//                                            [path] => my-favorite-sites/google/maps
+//                                            [display_name] => maps
+//                                            [depth] => 3
+//                                            [...],
+//                                            [children] => Array()
+//                                            [display_order] => 2
+//                                        )
+//                                )
+//                            [display_order] => 1
+//                        )
+//                    [1] => Array
+//                        (
+//                            [url] => http://github.com
+//                            [path] => my-favorite-sites/github
+//                            [display_name] => Github
+//                            [depth] => 2
+//                            [...]
+//                            [children] => Array
+//                                (
+//                                    [0] => Array
+//                                        (
+//                                            [url] => http://gist.github.com
+//                                            [path] => my-favorite-sites/github/gist
+//                                            [display_name] => gist
+//                                            [depth] => 3
+//                                            [...],
+//                                            [children] => Array()
+//                                            [display_order] => 1
+//                                        )
+//                                )
+//                            [display_order] => 2
+//                        )
+//                )
+//        )
+//)
+
 ```
 
 License
