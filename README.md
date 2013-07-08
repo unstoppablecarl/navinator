@@ -22,7 +22,7 @@ Usage
 -----
 
 1.  Create a collection
-2.  Add nodes to the collection in any order 
+2.  Add nodes to the collection in any order
 3.  Generate the data to be passed to your view.
 
 The following example generates a simple navigation tree.
@@ -40,40 +40,40 @@ The following example generates a simple navigation tree.
   use \Navinator\Collection;
   use \Navinator\Node;
   $collection = new Collection();
-  
+
   // create a node passing the node's path
   // note: a node with path 'my-favorite-sites' has not been added to the collection yet and does not need to be
-  $node = new Node('my-favorite-sites/goolge');
+  $node = new Node('my-favorite-sites/google');
   $node->url = 'http://google.com';
   $node->display_name = 'Google Search';
   $collection->addNode($node);
-  
+
   $node = new Node('my-favorite-sites');
-  // if $node->url is not set, the node path is used: same as $node->url = '/my-favorite-sites/';  
+  // if $node->url is not set, the node path is used: same as $node->url = '/my-favorite-sites/';
   $collection->addNode($node);
-  
-  // create a node object from an array 
+
+  // create a node object from an array
   $node = new Node(array(
       'path'         => 'my-favorite-sites/github',
       'url'          => 'http://github.com',
       'display_name' => 'Github'
   ));
   $collection->addNode($node);
- 
+
   $node = new Node(array(
       'path' => 'my-favorite-sites/github/gist',
       'url'  => 'http://gist.github.com'
   ));
   // if $node->display_name (array key or property) is not set, the last segment of the the node path is used: same as $node->display_name = 'gist';
   $collection->addNode($node);
-  
+
   $node = new Node(array(
       'path' => 'my-favorite-sites/google/maps',
       'url'  => 'https://www.google.com/maps/'
   ));
   // the display order of a node in relation to it's siblings can be set as the optional second param of $collection->addNode()
   $collection->addNode($node, 2);
-  
+
   $node = new Node(array(
       'path' => 'my-favorite-sites/google/gmail',
       'url'  => 'https://mail.google.com'
@@ -81,9 +81,9 @@ The following example generates a simple navigation tree.
   $collection->addNode($node, 1);
 
   $templateData = $collection->prepareForNavTemplate();
-    
+
   print_r($templateData);
-  
+
 // output
 // the following node array keys are replaced by [...] to make this example easier to read:
 //  - template_data
@@ -92,8 +92,8 @@ The following example generates a simple navigation tree.
 //  - is_current_root
 //  - is_current
 //  - is_current_ancestor
-  
-  
+
+
 //  Array
 //(
 //    [0] => Array
