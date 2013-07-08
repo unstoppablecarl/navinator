@@ -309,13 +309,22 @@ class Collection implements \Countable, \ArrayAccess{
     }
 
     /**
-     * Retrieves node data ready to be used by view
+     *  Retrieves node data ready to be used by view
+     *
+     * The $filter callback method signature should include the follow parameters:
+	 *
+	 *  - **`$node`**:       The node to be filtered
+	 *  - **`$nodeArrayData`**: Node array data to be returned for template
+	 *  - **`$collection`**: this collection object
+     *  - **`$currentNode`**: the currently navigated to node
+     *  - **`$currentNodeAncestorPaths`**: the currently navigated to node ancestor path
+     *
      * @param string $currentUrl The current url, used to set the current node, $_SERVER['REQUEST_URI'] is used by default
      * @param \Navinator\Node|string $currentNode The node to treat as the currently navigated to node, determines current node ancestors. If not set the best matching node will be used
-     * @param $returnAsObjects If true the data returned will be nested objects instead of arrays
+     * @param callback $filter Function to filter nodes - see the method description for details about the method signature
      * @return array
      */
-    public function prepareForNavTemplate($currentUrl = null, $currentNode = null, $returnAsObjects = false){
+    public function prepareForNavTemplate($currentUrl = null, $currentNode = null, $filter = null){
         $this->validateNodes();
         if($currentUrl === null){
             $currentUrl = $_SERVER['REQUEST_URI'];
@@ -337,7 +346,7 @@ class Collection implements \Countable, \ArrayAccess{
         $output = array();
 
         foreach($sortedRootNodes as $node){
-            $output[] = $node->prepareForTemplate($this, $currentNode, $currentNodeAncestorPaths);
+            $output[] = $node->prepareForTemplate($this, $currentNode, $currentNodeAncestorPaths, $filter);
         }
 
         return $output;
@@ -350,6 +359,9 @@ class Collection implements \Countable, \ArrayAccess{
      * @return type
      */
     public function prepareForBreadcrumbTemplate($currentUrl = null, $currentNode = null){
+        $filter = function($node, $nodeTemplateData, $collection, $currentNode, $currentNodeAncestorPaths){
+            return $nodeTemplateData['is_current'] || $nodeTemplateData['is_current_root'] || $nodeTemplateData['is_current_ancestor'];
+        };
         $this->validateNodes();
         if($currentUrl === null){
             $currentUrl = $_SERVER['REQUEST_URI'];
@@ -365,7 +377,7 @@ class Collection implements \Countable, \ArrayAccess{
         if($currentNode){
             $currentNodeAncestorPaths = $currentNode->getAncestorPaths();
             $rootParent = $currentNode->getRootParent($this);
-            return $rootParent->prepareForTemplate($this, $currentNode, $currentNodeAncestorPaths);
+            return $rootParent->prepareForTemplate($this, $currentNode, $currentNodeAncestorPaths, $filter);
         }
     }
 

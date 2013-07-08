@@ -299,12 +299,51 @@ class Node{
 
     /**
      * Convert this node to an array ready to be used by the template
+     *
+     * The $filter callback method signature should include the follow parameters:
+	 *
+	 *  - **`$node`**:       The node to be filtered
+	 *  - **`$nodeArrayData`**: Node array data to be returned for template
+	 *  - **`$collection`**:
+     *  - **`$currentNode`**:
+     *  - **`$currentNodeAncestorPaths`**:
+     *
      * @param \Navinator\Collection $collection Collection context used to convert this node to an array
      * @param \Navinator\Node $currentNode The node to treat as the currently navigated to node
-     * @param array $currentNodeAncestorPaths Array of current node ancestor paths (used to reduce lookups on the $currentNode object)
-     * @param $returnAsObjects If true the data returned will be nested objects instead of arrays
+     * @param array $currentNodeAncestorPaths Ancestor path of the current node
+     * @param callback $filter Function to filter nodes - see the method description for details about the method signature
      */
-    public function prepareForTemplate(\Navinator\Collection $collection, \Navinator\Node $currentNode = null, $currentNodeAncestorPaths = array(), $returnAsObjects = false){
+    public function prepareForTemplate(\Navinator\Collection $collection, \Navinator\Node $currentNode = null, $currentNodeAncestorPaths = array(), $filter = null){
+
+        $url = $this->url;
+        if(empty($url)){
+            $url = '/' . $this->path . '/';
+        }
+
+        $isCurrentNodeAncestor = !empty($currentNodeAncestorPaths) && in_array($this->path, $currentNodeAncestorPaths);
+        $isCurrentNode = !empty($currentNode) && $this->path == $currentNode->getPath();
+        $isCurrentRoot = ($this->getDepth() == 1 && $isCurrentNodeAncestor);
+
+        $output = array(
+            'url'                      => $url,
+            'path'                     => $this->path,
+            'display_name'             => $this->display_name,
+
+            'template_data'            => $this->template_data,
+            'depth'                    => $this->getDepth(),
+
+            // if this node is the first or last child of it's siblings
+            'is_first_child'           => false,
+            'is_last_child'            => false,
+            'is_current_root'          => $isCurrentRoot,
+            'is_current'               => $isCurrentNode,
+            'is_current_ancestor'      => $isCurrentNodeAncestor,
+        );
+
+        // if this node filters to false, return and do not handle child nodes
+        if($filter && !$filter($this, $output, $collection, $currentNode, $currentNodeAncestorPaths)){
+            return;
+        }
 
         $children = $this->getChildren($collection);
         $childArr = array();
@@ -331,33 +370,7 @@ class Node{
             $lastKey = key($childArr);
             $childArr[$lastKey]['is_last_child'] = true;
         }
-
-        $url = $this->url;
-        if(empty($url)){
-            $url = '/' . $this->path . '/';
-        }
-
-        $isCurrentNodeAncestor = !empty($currentNodeAncestorPaths) && in_array($this->path, $currentNodeAncestorPaths);
-        $isCurrentNode = !empty($currentNode) && $this->path == $currentNode->getPath();
-        $isCurrentRoot = ($this->getDepth() == 1 && $isCurrentNodeAncestor);
-
-        $output = array(
-            'url'                      => $url,
-            'path'                     => $this->path,
-            'display_name'             => $this->display_name,
-
-            'template_data'            => $this->template_data,
-            'depth'                    => $this->getDepth(),
-
-            // if this node is the first or last child of it's siblings
-            'is_first_child'           => false,
-            'is_last_child'            => false,
-            'is_current_root'          => $isCurrentRoot,
-            'is_current'               => $isCurrentNode,
-            'is_current_ancestor'      => $isCurrentNodeAncestor,
-
-            'children'                 => $childArr,
-        );
+        $output['children'] = $childArr;
 
         return $output;
     }
