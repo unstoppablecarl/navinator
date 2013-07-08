@@ -1,9 +1,31 @@
 Navinator
 =========
 
-A php package for fexibly managing navigation data for views.
+**Navinator** is a php package for fexibly managing navigation data for views.
 
 Navinator is a light weight navigation helper providing simple collection and node classes designed to allow you to generate navigation tree data without complication.
+
+## Installing
+
+- Install [Composer](http://getcomposer.org)
+- Add `unstoppablecarl/navinator` to your project's `composer.json` file:
+
+```json
+{
+    "require": {
+        "unstoppablecarl/navinator": "1.*"
+    }
+}
+```
+
+- Install/update your dependencies
+
+```bash
+$ cd my_project
+$ php composer.phar install
+```
+
+Look at the **example files** in `examples/` to see all the cool things you can do with Navinator.
 
 Design Goals
 -----
