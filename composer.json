@@ -1,0 +1,24 @@
+{
+    "name": "unstoppablecarl/navinator",
+    "description": "A php package for fexibly managing navigation template data.",
+    "license": "MIT",
+    "homepage": "https://github.com/unstoppablecarl/navinator",
+    "version": "0.1",
+    "authors": [
+        {
+            "name": "Carl Olsen",
+            "email": "unstoppablecarlolsen@gmail.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {
+        "php": ">=5.3",
+        "phpunit/phpunit": "3.7.21",
+        "phpdocumentor/phpdocumentor": "dev-release-2.0"
+    },
+    "autoload": {
+        "psr-0": {
+            "Navinator": "src/"
+        }
+    }
+}
