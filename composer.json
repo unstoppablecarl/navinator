@@ -4,7 +4,6 @@
     "license": "MIT",
     "homepage": "https://github.com/unstoppablecarl/navinator",
     "keywords": ["navigation", "nav", "tree", "view"],
-    "version": "1.0.1",
     "authors": [
         {
             "name": "Carl Olsen",
