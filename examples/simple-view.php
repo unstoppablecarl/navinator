@@ -52,7 +52,7 @@ function renderSimpleBreadcrumb($nodes){
             <?php endif; ?>
             </li>
              <?php if($node['children']): ?>
-                <?php renderSimpleBreadcrumb($node['children'], $depth + 1); ?>
+                <?php renderSimpleBreadcrumb($node['children']); ?>
             <?php endif; ?>
         <?php endforeach; ?>
     <?php
