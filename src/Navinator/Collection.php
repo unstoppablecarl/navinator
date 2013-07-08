@@ -41,7 +41,7 @@ class Collection implements \Countable, \ArrayAccess{
             if(isset($arrayItem['display_order'])){
                 $displayOrder = $arrayItem['display_order'];
             }
-            $node = \Navinator\Node::buildFromArray($arrayItem);
+            $node = new \Navinator\Node($arrayItem);
             $collection->addNode($node, $displayOrder, $autoSetDisplayOrder);
         }
         return $collection;
