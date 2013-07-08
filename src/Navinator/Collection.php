@@ -377,7 +377,7 @@ class Collection implements \Countable, \ArrayAccess{
         if($currentNode){
             $currentNodeAncestorPaths = $currentNode->getAncestorPaths();
             $rootParent = $currentNode->getRootParent($this);
-            return $rootParent->prepareForTemplate($this, $currentNode, $currentNodeAncestorPaths, $filter);
+            return array($rootParent->prepareForTemplate($this, $currentNode, $currentNodeAncestorPaths, $filter));
         }
     }
 

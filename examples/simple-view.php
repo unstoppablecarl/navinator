@@ -26,9 +26,8 @@ function renderSimpleNav($nodes, $depth = 1){
                 $cssClasses[] = 'active';
             }
 
-
             ?>
-            <li class=" <?= implode(' ', $cssClasses) ?>">
+            <li class="<?= implode(' ', $cssClasses) ?>">
                 <a href="<?= $node['url'] ?>"><?= $node['display_name'] ?></a>
                 <?php
                 if($node['children']){
@@ -38,6 +37,24 @@ function renderSimpleNav($nodes, $depth = 1){
             </li>
         <?php endforeach; ?>
     </ul>
+    <?php
+}
+
+
+function renderSimpleBreadcrumb($nodes){
+    ?>
+        <?php foreach($nodes as $node): ?>
+            <li>
+                <a href="<?= $node['url'] ?>"><?= $node['display_name'] ?></a>
+
+            <?php if($node['children']): ?>
+                /
+            <?php endif; ?>
+            </li>
+             <?php if($node['children']): ?>
+                <?php renderSimpleBreadcrumb($node['children'], $depth + 1); ?>
+            <?php endif; ?>
+        <?php endforeach; ?>
     <?php
 }
 
@@ -86,8 +103,26 @@ $node = new Node(array(
     ));
 $collection->addNode($node, 1);
 
-$templateData = $collection->prepareForNavTemplate();
 
+$node = new Node('my-favorite-sites/programming');
+$collection->addNode($node);
+
+$node = new Node('my-favorite-sites/programming/js');
+$collection->addNode($node);
+
+$node = new Node('my-favorite-sites/programming/css');
+$collection->addNode($node);
+
+$node = new Node('my-favorite-sites/programming/php');
+$collection->addNode($node);
+
+
+// manually set the current url or fallback to $_SERVER['REQUEST_URI'];
+$currentUrl = '/my-favorite-sites/programming/php/';
+
+$templateData = $collection->prepareForNavTemplate($currentUrl);
+
+$breadcrumbTemplateData = $collection->prepareForBreadcrumbTemplate($currentUrl);
 ?>
 <style>
 
@@ -108,6 +143,7 @@ $templateData = $collection->prepareForNavTemplate();
         padding: 5px;
         background: #eee;
         border: 1px solid #ddd;
+        margin: 20px;
     }
 
     .nav ul.depth-1 {
@@ -133,6 +169,9 @@ $templateData = $collection->prepareForNavTemplate();
         background: #ddd;
     }
 
+    .nav li.active > a {
+        background: #ddd
+    }
     .nav li.last-child a{
     }
 
@@ -154,14 +193,24 @@ $templateData = $collection->prepareForNavTemplate();
 
 
 
+    .breadcrumb {
+        clear:both;
+        margin: 20px;
+    }
 
+    .breadcrumb ul li {
+        display:inline-block;
+    }
 
 
 </style>
 
-
 <div class="nav">
-<?
-renderSimpleNav($templateData);
-?>
+<? renderSimpleNav($templateData); ?>
+</div>
+
+<div class="breadcrumb">
+    <ul>
+    <?php renderSimpleBreadcrumb($breadcrumbTemplateData) ?>
+    </ul>
 </div>

@@ -79,6 +79,7 @@ class Node{
             $path = $obj;
             $this->setPath($path);
             $this->display_name = $this->getNodeName();
+            $this->url = '/' . $this->path . '/';
         } else{
             $array = $obj;
             $arrayKeys = array_keys($array);
@@ -101,6 +102,9 @@ class Node{
             }
             if(!$this->display_name){
                 $this->display_name = $this->getNodeName();
+            }
+            if(!$this->url){
+                $this->url = '/' . $this->path . '/';
             }
         }
     }
@@ -341,7 +345,7 @@ class Node{
         );
 
         // if this node filters to false, return and do not handle child nodes
-        if($filter && !$filter($this, $output, $collection, $currentNode, $currentNodeAncestorPaths)){
+        if($filter !== null && !$filter($this, $output, $collection, $currentNode, $currentNodeAncestorPaths)){
             return;
         }
 
@@ -349,9 +353,11 @@ class Node{
         $childArr = array();
         if($children){
             foreach($children as $child){
-                $childItem = $child->prepareForTemplate($collection, $currentNode, $currentNodeAncestorPaths);
-                $childItem['display_order'] = $collection->getNodeDisplayOrder($child->getPath());
-                $childArr[] = $childItem;
+                $childItem = $child->prepareForTemplate($collection, $currentNode, $currentNodeAncestorPaths, $filter);
+                if(!empty($childItem)){
+                    $childItem['display_order'] = $collection->getNodeDisplayOrder($child->getPath());
+                    $childArr[] = $childItem;
+                }
             }
         }
 
