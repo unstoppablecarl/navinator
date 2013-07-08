@@ -3,11 +3,13 @@
     "description": "A php package for fexibly managing navigation template data.",
     "license": "MIT",
     "homepage": "https://github.com/unstoppablecarl/navinator",
-    "version": "0.1",
+    "keywords": ["navigation", "nav", "tree", "view"],
+    "version": "1.0.1",
     "authors": [
         {
             "name": "Carl Olsen",
-            "email": "unstoppablecarlolsen@gmail.com"
+            "email": "unstoppablecarlolsen@gmail.com",
+            "role": "Developer"
         }
     ],
     "minimum-stability": "dev",
