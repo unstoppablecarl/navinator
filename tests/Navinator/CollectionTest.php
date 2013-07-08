@@ -223,5 +223,41 @@ class CollectionTest extends \PHPUnit_Framework_TestCase{
 
     }
 
+    public function testDisplayOrder(){
+        $nodeData = array(
+            'beta' => 2,
+            'alpha' => 1,
+            'delta' => 4,
+            'gamma' => 3,
+
+        );
+
+
+        $nodes = array();
+        $c = new Collection();
+
+        foreach($nodeData as $path => $expectedDisplayOrder){
+            $n = new Node($path);
+            $nodes[$path] = $n;
+            $c->addNode($n, $expectedDisplayOrder);
+        }
+//        error_log(print_r($c, true));
+
+        foreach($nodeData as $path => $expectedDisplayOrder){
+            $this->assertSame($c->getNode($path), $nodes[$path]);
+            $this->assertSame($c->getNodeDisplayOrder($path), $expectedDisplayOrder);
+        }
+
+        $templateOutput = $c->prepareForNavTemplate();
+        error_log(print_r($templateOutput, true));
+
+//        foreach($templateOutput as $index => $item){
+//            $this->assertSame($nodes[$index]->getPath(), $item['path']);
+//        }
+
+
+
+    }
+
 
 }

@@ -619,8 +619,6 @@ class NodeTest extends \PHPUnit_Framework_TestCase{
             $c->addNode($n);
         }
 
-        error_log(print_r($nodes['alpha']->prepareForTemplate($c), true));
-
         $expected = array();
         $expected = array(
             'url'                 => '/alpha/',

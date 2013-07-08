@@ -115,8 +115,7 @@ class Collection implements \Countable, \ArrayAccess{
         $newNodeDisplayOrder = $displayOrder;
 
         $siblings = $node->getSiblings($this);
-        if(empty($displayOrder) || !is_int($displayOrder)){
-
+        if($displayOrder == null){
             if(empty($siblings)){
                 $newNodeDisplayOrder = 1;
             } else{
@@ -253,7 +252,7 @@ class Collection implements \Countable, \ArrayAccess{
      * @param bool $exactMatchOnly When true only a node with a url matching exactly will be returned. When false the node with the closest matchin url will be returned.
      */
     protected function getNodeMatchingUrl($url = null, $exactMatchOnly = false){
-        if($url === null){
+        if($url === null && isset($_SERVER['REQUEST_URI'])){
             $url = $_SERVER['REQUEST_URI'];
         }
         $currentNode = null;
@@ -326,7 +325,7 @@ class Collection implements \Countable, \ArrayAccess{
      */
     public function prepareForNavTemplate($currentUrl = null, $currentNode = null, $filter = null){
         $this->validateNodes();
-        if($currentUrl === null){
+        if($currentUrl === null && isset($_SERVER['REQUEST_URI'])){
             $currentUrl = $_SERVER['REQUEST_URI'];
         }
 
@@ -450,8 +449,6 @@ class Collection implements \Countable, \ArrayAccess{
 
 
             if($node->getDepth() > 1 && !$this->hasNode($parentPath)){
-                error_log(print_r($this->nodes, true));
-            error_log($node->getPath() . ': $parentPath ' . $parentPath);
                 $orphans[$path] = $node;
             }
         }
