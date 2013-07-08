@@ -35,8 +35,6 @@ The following example generates a simple navigation tree.
         * gist
 
 ```php
-
-
   use \Navinator\Collection;
   use \Navinator\Node;
   $collection = new Collection();
@@ -92,7 +90,6 @@ The following example generates a simple navigation tree.
 //  - is_current_root
 //  - is_current
 //  - is_current_ancestor
-
 
 //  Array
 //(
@@ -162,8 +159,36 @@ The following example generates a simple navigation tree.
 //                )
 //        )
 //)
-
 ```
+
+
+Views
+-----
+
+The output template data can be rendered with a very simple view function.
+
+```php
+function renderSimpleNav($nodes, $depth = 1){
+    ?>
+    <ul class="depth-<?= $depth ?>">
+        <?php foreach($nodes as $node): 
+            $isFirstChild = 
+        ?>
+            <li>
+                <a href="<?= $node['url'] ?>"><?= $node['display_name'] ?></a>
+                <?php
+                if($node['children']){
+                    renderSimpleNav($node['children'], $depth + 1);
+                }
+                ?>
+            </li>
+        <?php endforeach; ?>
+    </ul>
+    <?php
+}
+```
+
+A more extensive example of this simple view is available in [examples/simple-view.php](examples/simple-view.php)
 
 License
 -
