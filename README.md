@@ -1,6 +1,8 @@
 Navinator
 =========
 
+[![Build Status](https://travis-ci.org/unstoppablecarl/navinator.png)](https://travis-ci.org/unstoppablecarl/navinator)
+
 **Navinator** is a php package for fexibly managing navigation data for views.
 
 Navinator is a light weight navigation tree helper providing simple collection and node classes designed to allow you to generate navigation tree data without complication.
