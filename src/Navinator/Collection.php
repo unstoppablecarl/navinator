@@ -376,8 +376,27 @@ class Collection implements \Countable, \ArrayAccess{
         if($currentNode){
             $currentNodeAncestorPaths = $currentNode->getAncestorPaths();
             $rootParent = $currentNode->getRootParent($this);
-            return array($rootParent->prepareForTemplate($this, $currentNode, $currentNodeAncestorPaths, $filter));
+            $breadcrumbData = array($rootParent->prepareForTemplate($this, $currentNode, $currentNodeAncestorPaths, $filter));
+            return $this->flattenBreadcrumbData($breadcrumbData);
         }
+    }
+
+    /**
+     * Converts nested node array data into flattened node array data
+     * @param array $breadcrumbData
+     * @param array $output
+     * @return array
+     */
+    protected function flattenBreadcrumbData($breadcrumbData, $output = array()){
+        foreach($breadcrumbData as $node){
+            $children = $node['children'];
+            $node['children'] = array();
+            $output[] = $node;
+            if($children){
+                return $this->flattenBreadcrumbData($children, $output);
+            }
+        }
+        return $output;
     }
 
     /**

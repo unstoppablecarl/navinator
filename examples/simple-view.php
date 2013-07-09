@@ -43,18 +43,20 @@ function renderSimpleNav($nodes, $depth = 1){
 
 function renderSimpleBreadcrumb($nodes){
     ?>
-        <?php foreach($nodes as $node): ?>
+        <?php
+        $count = count($nodes);
+        $i = 1;
+        foreach($nodes as $node): ?>
             <li>
                 <a href="<?= $node['url'] ?>"><?= $node['display_name'] ?></a>
 
-            <?php if($node['children']): ?>
+            <?php if($i !== $count): ?>
                 /
             <?php endif; ?>
             </li>
-             <?php if($node['children']): ?>
-                <?php renderSimpleBreadcrumb($node['children']); ?>
-            <?php endif; ?>
-        <?php endforeach; ?>
+        <?php
+        $i++;
+        endforeach; ?>
     <?php
 }
 
@@ -123,6 +125,7 @@ $currentUrl = '/my-favorite-sites/programming/php/';
 $templateData = $collection->prepareForNavTemplate($currentUrl);
 
 $breadcrumbTemplateData = $collection->prepareForBreadcrumbTemplate($currentUrl);
+error_log(print_r($breadcrumbTemplateData, true));
 ?>
 <style>
 
@@ -189,9 +192,6 @@ $breadcrumbTemplateData = $collection->prepareForBreadcrumbTemplate($currentUrl)
         font-weight: normal;
         padding-left: 40px;
     }
-
-
-
 
     .breadcrumb {
         clear:both;

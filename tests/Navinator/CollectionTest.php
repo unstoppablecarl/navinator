@@ -249,7 +249,7 @@ class CollectionTest extends \PHPUnit_Framework_TestCase{
         }
 
         $templateOutput = $c->prepareForNavTemplate();
-        error_log(print_r($templateOutput, true));
+//        error_log(print_r($templateOutput, true));
 
 //        foreach($templateOutput as $index => $item){
 //            $this->assertSame($nodes[$index]->getPath(), $item['path']);
