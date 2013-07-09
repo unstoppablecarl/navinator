@@ -3,7 +3,7 @@ Navinator
 
 **Navinator** is a php package for fexibly managing navigation data for views.
 
-Navinator is a light weight navigation helper providing simple collection and node classes designed to allow you to generate navigation tree data without complication.
+Navinator is a light weight navigation tree helper providing simple collection and node classes designed to allow you to generate navigation tree data without complication.
 
 ## Installing
 
@@ -18,7 +18,7 @@ Navinator is a light weight navigation helper providing simple collection and no
 }
 ```
 
-- Install/update your dependencies
+- Install/update
 
 ```bash
 $ cd my_project
@@ -31,14 +31,34 @@ Design Goals
 -----
 
 *  Add nodes to a collection tree without complication
- *  Add nodes in any order
- *  Parents do not have to be added before children
+ *  Add nodes in any order, parents do not have to be added before children
  *  Nodes do not need to know anything about children or parents
-*  Use a simple path to describe parent child relationships
+*  Use a simple directory-like path to describe the position of a node in the tree
 *  Act as a helper that could be used for any view
  *  Generate data ready to be used by a view requiring minimal logic and  function calls
  *  Let the view handle the html
 
+Node Path and Node Url
+-----
+
+Each node has a directory-like **path** that describes where the node is in the tree. In most cases the url of the nav node will match the path. By default slashes are added to the path and set as the url.
+
+```php
+    use \Navinator\Node;
+
+    $path = 'articles';
+    $node = new Node($path);
+    $url = $node->url; // /articles/
+    
+    $path = 'articles/tags';
+    $node = new Node($path);
+    $url = $node->url; // /articles/tags/
+    
+    $path = 'articles/tags/news';
+    $node = new Node($path);
+    // set the url manually
+    $node->url = 'http://www.theonion.com';
+```
 
 Usage
 -----
@@ -60,16 +80,18 @@ The following example generates a simple navigation tree.
   use \Navinator\Collection;
   use \Navinator\Node;
   $collection = new Collection();
-
+  
   // create a node passing the node's path
   // note: a node with path 'my-favorite-sites' has not been added to the collection yet and does not need to be
   $node = new Node('my-favorite-sites/google');
   $node->url = 'http://google.com';
   $node->display_name = 'Google Search';
   $collection->addNode($node);
-
+  
   $node = new Node('my-favorite-sites');
-  // if $node->url is not set, the node path is used: same as $node->url = '/my-favorite-sites/';
+  $node->display_name = 'My Favorite Sites';
+  // if $node->url is not set, the node path is used: 
+  // same as: $node->url = '/my-favorite-sites/';
   $collection->addNode($node);
 
   // create a node object from an array
@@ -182,7 +204,6 @@ The following example generates a simple navigation tree.
 //        )
 //)
 ```
-
 
 Views
 -----
