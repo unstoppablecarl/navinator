@@ -394,7 +394,6 @@ class Node{
         $childArr = array();
         if($children){
             $children = $collection->sortNodeArray($children);
-            error_log(print_r($children, true));
             foreach($children as $child){
                 $childItem = $child->prepareForTemplate($collection, $children, $currentNode, $currentNodeAncestorPaths, $filter);
                 if(!empty($childItem)){
