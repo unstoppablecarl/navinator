@@ -358,7 +358,8 @@ class Collection implements \Countable, \ArrayAccess{
      * @return type
      */
     public function prepareForBreadcrumbTemplate($currentUrl = null, $currentNode = null){
-        $filter = function($node, $nodeTemplateData, $collection, $currentNode, $currentNodeAncestorPaths){
+
+        $filter = function($node, $nodeTemplateData, $collection, $sortedSiblings, $currentNode, $currentNodeAncestorPaths){
             return $nodeTemplateData['is_current'] || $nodeTemplateData['is_current_root'] || $nodeTemplateData['is_current_ancestor'];
         };
         $this->validateNodes();
@@ -377,7 +378,7 @@ class Collection implements \Countable, \ArrayAccess{
             $currentNodeAncestorPaths = $currentNode->getAncestorPaths();
             $rootParent = $currentNode->getRootParent($this);
             if($rootParent){
-                $breadcrumbData = array($rootParent->prepareForTemplate($this, $currentNode, $currentNodeAncestorPaths, $filter));
+                $breadcrumbData = array($rootParent->prepareForTemplate($this, array($rootParent), $currentNode,  $currentNodeAncestorPaths, $filter));
                 return $this->flattenBreadcrumbData($breadcrumbData);
             }
         }

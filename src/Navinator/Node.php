@@ -338,6 +338,7 @@ class Node{
      *  - **`$node`**:       The node to be filtered
      *  - **`$nodeArrayData`**: Node array data to be returned for template
      *  - **`$collection`**:
+     *  - **`$sortedSiblings`**:
      *  - **`$currentNode`**:
      *  - **`$currentNodeAncestorPaths`**:
      *
@@ -348,7 +349,6 @@ class Node{
      * @param callback $filter Function to filter nodes - see the method description for details about the method signature
      */
     public function prepareForTemplate(\Navinator\Collection $collection,  $sortedSiblings = array(), \Navinator\Node $currentNode = null, $currentNodeAncestorPaths = array(), $filter = null){
-
         $isCurrentNodeAncestor = !empty($currentNodeAncestorPaths) && in_array($this->path, $currentNodeAncestorPaths);
         $isCurrentNode = !empty($currentNode) && $this->path == $currentNode->getPath();
         $isCurrentRoot = ($this->getDepth() == 1 && $isCurrentNodeAncestor);
