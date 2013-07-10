@@ -43,6 +43,13 @@ class Node{
     public $url;
 
     /**
+     * When false this node will be considered when trying to find the node with url most mathcing the requested url
+     * When true this node will only match as the "current" node if the requested url matches this node's ->url exactly
+     * @var bool
+     */
+    public $current_only_on_exact_url_match = false;
+
+    /**
      * Custom template data
      * @var array
      */
@@ -72,13 +79,19 @@ class Node{
     /**
      * Constructs a node object
      * @param string|array $obj If $obj is a string it is used as the path for the constructed node formatted like: articles/tags/news. If $obj is an array, key value pairs will be assigned to node object properties
-     * @param int $displayOrder
+     * @param string $displayName ignored when $obj is an array
      */
-    public function __construct($obj){
+    public function __construct($obj, $displayName = null){
+
         if(!is_array($obj)){
-            $path = $obj;
+            $path = (string)$obj;
             $this->setPath($path);
-            $this->display_name = $this->getNodeName();
+
+            if($displayName === null){
+                $displayName = $this->humanizeString($this->getLastPathSegment());
+            }
+
+            $this->display_name = $displayName;
             $this->url = '/' . $this->path . '/';
         } else{
             $array = $obj;
@@ -97,11 +110,16 @@ class Node{
 
             // merge with defaults to avoid undefined indexes
             $mergedArray = array_merge($this->default_constructor_array, $filteredArray);
+
+            // use ->setPath to trim and validate the path
+            $this->setPath($mergedArray['path']);
+            unset($mergedArray['path']);
+
             foreach($mergedArray as $key => $val){
                 $this->{$key} = $val;
             }
             if(!$this->display_name){
-                $this->display_name = $this->getNodeName();
+                $this->display_name = $this->humanizeString($this->getLastPathSegment());
             }
             if(!$this->url){
                 $this->url = '/' . $this->path . '/';
@@ -243,7 +261,7 @@ class Node{
         $prevPath = '';
         foreach($pathArray as $segment){
             if($prevPath){
-                $segment =  $prevPath . '/' . $segment;
+                $segment = $prevPath . '/' . $segment;
             }
             if($segment != $this->path){
                 $output[] = $segment;
@@ -261,7 +279,7 @@ class Node{
     public function getDescendants(\Navinator\Collection $collection){
         $childNodes = array();
         foreach($collection->getNode() as $node){
-            if(\Navinator\Collection::strStartsWith($this->getPath() .'/', $node->getPath()) && $node->getDepth() > $this->getDepth()){
+            if(\Navinator\Collection::strStartsWith($this->getPath() . '/', $node->getPath()) && $node->getDepth() > $this->getDepth()){
                 $childNodes[$node->getPath()] = $node;
             }
         }
@@ -296,86 +314,95 @@ class Node{
      * Retrieves the last segment in the path. "articles/categories/news" would return "news"
      * @return string
      */
-    public function getNodeName(){
-        $pathArray = $this->getPathArray();
-        return end($pathArray);
+    public function getLastPathSegment(){
+        $path = $this->path;
+        if(strrpos($path, '/') === false){
+            return $path;
+        }
+        return substr($path, strrpos($path, '/') + 1, strlen($path));
+    }
+
+    /**
+     * Replaces _ and - with space and uppercases words
+     * @param string $str the string to humanize
+     */
+    public function humanizeString($str){
+        return ucwords(str_replace(array('-', '_'), ' ', $str));
     }
 
     /**
      * Convert this node to an array ready to be used by the template
      *
      * The $filter callback method signature should include the follow parameters:
-	 *
-	 *  - **`$node`**:       The node to be filtered
-	 *  - **`$nodeArrayData`**: Node array data to be returned for template
-	 *  - **`$collection`**:
+     *
+     *  - **`$node`**:       The node to be filtered
+     *  - **`$nodeArrayData`**: Node array data to be returned for template
+     *  - **`$collection`**:
      *  - **`$currentNode`**:
      *  - **`$currentNodeAncestorPaths`**:
      *
      * @param \Navinator\Collection $collection Collection context used to convert this node to an array
+     * @param array $sortedSiblings sorted siblings of this node includes this node (passed to avoid fetching them constantly)
      * @param \Navinator\Node $currentNode The node to treat as the currently navigated to node
-     * @param array $currentNodeAncestorPaths Ancestor path of the current node
+     * @param array $currentNodeAncestorPaths Ancestor path of the current node (passed to avoid fetching them constantly)
      * @param callback $filter Function to filter nodes - see the method description for details about the method signature
      */
-    public function prepareForTemplate(\Navinator\Collection $collection, \Navinator\Node $currentNode = null, $currentNodeAncestorPaths = array(), $filter = null){
-
-        $url = $this->url;
-        if(empty($url)){
-            $url = '/' . $this->path . '/';
-        }
+    public function prepareForTemplate(\Navinator\Collection $collection,  $sortedSiblings = array(), \Navinator\Node $currentNode = null, $currentNodeAncestorPaths = array(), $filter = null){
 
         $isCurrentNodeAncestor = !empty($currentNodeAncestorPaths) && in_array($this->path, $currentNodeAncestorPaths);
         $isCurrentNode = !empty($currentNode) && $this->path == $currentNode->getPath();
         $isCurrentRoot = ($this->getDepth() == 1 && $isCurrentNodeAncestor);
 
+        $isFirstChild = false;
+        $isLastChild = false;
+
+        if($sortedSiblings){
+            reset($sortedSiblings);
+            $firstKey = key($sortedSiblings);
+            if($this === $sortedSiblings[$firstKey]){
+                $isFirstChild = true;
+            }
+
+            end($sortedSiblings);
+            $lastKey = key($sortedSiblings);
+            if($this === $sortedSiblings[$lastKey]){
+                $isLastChild = true;
+            }
+        }
+
         $output = array(
-            'url'                      => $url,
-            'path'                     => $this->path,
-            'display_name'             => $this->display_name,
-
-            'template_data'            => $this->template_data,
-            'depth'                    => $this->getDepth(),
-
+            'url'                 => $this->url,
+            'path'                => $this->path,
+            'display_name'        => $this->display_name,
+            'template_data'       => $this->template_data,
+            'depth'               => $this->getDepth(),
             // if this node is the first or last child of it's siblings
-            'is_first_child'           => false,
-            'is_last_child'            => false,
-            'is_current_root'          => $isCurrentRoot,
-            'is_current'               => $isCurrentNode,
-            'is_current_ancestor'      => $isCurrentNodeAncestor,
+            'is_first_child'      => $isFirstChild,
+            'is_last_child'       => $isLastChild,
+            'is_current_root'     => $isCurrentRoot,
+            'is_current'          => $isCurrentNode,
+            'is_current_ancestor' => $isCurrentNodeAncestor,
+            'display_order' => $collection->getNodeDisplayOrder($this),
         );
 
         // if this node filters to false, return and do not handle child nodes
-        if($filter !== null && !$filter($this, $output, $collection, $currentNode, $currentNodeAncestorPaths)){
+        if($filter && $filter instanceof \Closure && !$filter($this, $output, $collection, $sortedSiblings, $currentNode, $currentNodeAncestorPaths)){
             return;
         }
 
         $children = $this->getChildren($collection);
         $childArr = array();
         if($children){
+            $children = $collection->sortNodeArray($children);
+            error_log(print_r($children, true));
             foreach($children as $child){
-                $childItem = $child->prepareForTemplate($collection, $currentNode, $currentNodeAncestorPaths, $filter);
+                $childItem = $child->prepareForTemplate($collection, $children, $currentNode, $currentNodeAncestorPaths, $filter);
                 if(!empty($childItem)){
-                    $childItem['display_order'] = $collection->getNodeDisplayOrder($child->getPath());
                     $childArr[] = $childItem;
                 }
             }
         }
 
-        if(!empty($childArr)){
-            usort($childArr, function($a, $b){
-                    if($a['display_order'] == $b['display_order']){
-                        return 0;
-                    }
-                    return ($a['display_order'] < $b['display_order']) ? -1 : 1;
-                });
-            reset($childArr);
-            $firstKey = key($childArr);
-            $childArr[$firstKey]['is_first_child'] = true;
-
-            end($childArr);
-            $lastKey = key($childArr);
-            $childArr[$lastKey]['is_last_child'] = true;
-        }
         $output['children'] = $childArr;
 
         return $output;

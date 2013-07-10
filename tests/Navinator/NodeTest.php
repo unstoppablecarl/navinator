@@ -12,40 +12,76 @@ class NodeTest extends \PHPUnit_Framework_TestCase{
 
     }
 
-    static public function testConstructProvider(){
+
+    static public function testHumanizeStrProvider(){
         return array(
             array(
                 'alpha',
-                array('alpha'),
-                array(),
-                false,
-                1,
-                'alpha'
+                'Alpha',
             ),
             array(
-                'alpha/beta',
-                array('alpha', 'beta'),
-                array('alpha'),
-                'alpha',
-                2,
-                'beta'
+                'alpha-beta',
+                'Alpha Beta',
             ),
             array(
-                'alpha/beta/gamma',
-                array('alpha', 'beta', 'gamma'),
-                array('alpha', 'alpha/beta'),
-                'alpha/beta',
-                3,
-                'gamma'
+                'alpha_beta',
+                'Alpha Beta',
             ),
+        );
+    }
+
+    /**
+     *
+     * @dataProvider testHumanizeStrProvider
+     */
+    public function testHumanizeStr($str, $expected){
+        $n = new Node('x');
+        $this->assertEquals($expected, $n->humanizeString($str));
+    }
+
+    static public function testConstructProvider(){
+        return array(
             array(
-                'alpha/beta/gamma/delta',
-                array('alpha', 'beta', 'gamma', 'delta'),
-                array('alpha', 'alpha/beta', 'alpha/beta/gamma'),
-                'alpha/beta/gamma',
-                4,
-                'delta'
-            )
+                array(
+                    'path'                => 'alpha',
+                    'path_array'          => array('alpha'),
+                    'ancestor_path_array' => array(),
+                    'parent_path'         => false,
+                    'depth'               => 1,
+                    'display_name'        => 'Alpha',
+                    'last_path_segment'   => 'alpha',
+                ),),
+            array(
+                array(
+                    'path'                => 'alpha/beta',
+                    'path_array'          => array('alpha', 'beta'),
+                    'ancestor_path_array' => array('alpha'),
+                    'parent_path'         => 'alpha',
+                    'depth'               => 2,
+                    'display_name'        => 'Beta',
+                    'last_path_segment'   => 'beta',
+                ),),
+            array(
+                array(
+                    'path'                => 'alpha/beta/gamma',
+                    'path_array'          => array('alpha', 'beta', 'gamma'),
+                    'ancestor_path_array' => array('alpha', 'alpha/beta'),
+                    'parent_path'         => 'alpha/beta',
+                    'depth'               => 3,
+                    'display_name'        => 'Gamma',
+                    'last_path_segment'   => 'gamma',
+                ),),
+            array(
+                array(
+                    'path'                => 'alpha/beta/gamma/delta',
+                    'path_array'          => array('alpha', 'beta', 'gamma', 'delta'),
+                    'ancestor_path_array' => array('alpha', 'alpha/beta', 'alpha/beta/gamma'),
+                    'parent_path'         => 'alpha/beta/gamma',
+                    'depth'               => 4,
+                    'display_name'        => 'Delta',
+                    'last_path_segment'   => 'delta',
+                ),
+            ),
         );
     }
 
@@ -53,14 +89,19 @@ class NodeTest extends \PHPUnit_Framework_TestCase{
      *
      * @dataProvider testConstructProvider
      */
-    public function testConstruct($path, $pathArray, $ancestorPathArray, $parentPath, $depth, $displayName){
+    public function testConstruct($params){
+
+        extract($params);
         $n = new Node($path);
         $this->assertEquals($path, $n->getPath());
-        $this->assertEquals($pathArray, $n->getPathArray());
-        $this->assertEquals($parentPath, $n->getParentPath());
+        // test url
+        $this->assertEquals('/' . $path . '/', $n->url, 'Cannot covert path to url correctly');
+
+        $this->assertEquals($path_array, $n->getPathArray());
+        $this->assertEquals($parent_path, $n->getParentPath());
         $this->assertEquals($depth, $n->getDepth());
-        $this->assertEquals($ancestorPathArray, $n->getAncestorPaths());
-        $this->assertEquals($displayName, $n->display_name);
+        $this->assertEquals($ancestor_path_array, $n->getAncestorPaths());
+        $this->assertEquals($display_name, $n->display_name);
     }
 
     public function testConstructFromArrayProvider(){
@@ -69,30 +110,57 @@ class NodeTest extends \PHPUnit_Framework_TestCase{
             array(
                 // constructor array
                 array(
-                    'path'          => 'alpha',
-                    'display_name'  => 'alpha',
-                    'url'           => 'alpha',
-                    'template_data' => array('foo'),
+                    'path' => 'alpha',
                 ),
                 // expected values
-                'alpha',
-                'alpha',
-                'alpha',
-                array('foo'),
+                array(
+                    'path'          => 'alpha',
+                    'display_name'  => 'Alpha',
+                    'url'           => '/alpha/',
+                    'template_data' => array(),
+                ),
             ),
             array(
                 // constructor array
                 array(
-                    'path'          => 'alpha/beta',
-                    'display_name'  => 'beta',
-                    'url'           => '/foo/bar/',
-                    'template_data' => array('foo', 'bar'),
+                    'path'          => 'alpha',
+                    'display_name'  => 'alpha-display-name',
+                    'url'           => '/alpha-url/',
+                    'template_data' => array('foo'),
                 ),
                 // expected values
-                'alpha/beta',
-                'beta',
-                '/foo/bar/',
-                array('foo', 'bar'),
+                array(
+                    'path'          => 'alpha',
+                    'display_name'  => 'alpha-display-name',
+                    'url'           => '/alpha-url/',
+                    'template_data' => array('foo'),
+                )
+            ),
+            array(
+                // constructor array
+                array(
+                    'path' => 0,
+                ),
+                // expected values
+                array(
+                    'path'          => '0',
+                    'display_name'  => '0',
+                    'url'           => '/0/',
+                    'template_data' => array(),
+                )
+            ),
+            array(
+                // constructor array
+                array(
+                    'path' => 90,
+                ),
+                // expected values
+                array(
+                    'path'          => '90',
+                    'display_name'  => '90',
+                    'url'           => '/90/',
+                    'template_data' => array(),
+                )
             )
         );
     }
@@ -101,13 +169,14 @@ class NodeTest extends \PHPUnit_Framework_TestCase{
      *
      * @dataProvider testConstructFromArrayProvider
      */
-    public function testConstructFromArray($arrData, $path, $displayName, $url, $templateData){
-        $n = new Node($arrData);
+    public function testConstructFromArray($testData, $expectedData){
+        $n = new Node($testData);
 
+        extract($expectedData);
         $this->assertEquals($path, $n->getPath());
         $this->assertEquals($url, $n->url);
-        $this->assertEquals($templateData, $n->template_data);
-        $this->assertEquals($displayName, $n->display_name);
+        $this->assertEquals($template_data, $n->template_data);
+        $this->assertEquals($display_name, $n->display_name);
     }
 
     public function testConstructException(){
@@ -139,7 +208,7 @@ class NodeTest extends \PHPUnit_Framework_TestCase{
         $n = new Node($nodeArr);
     }
 
-    public function testGetNodeNameProvider(){
+    public function testGetLastPathSegmentProvider(){
         return array(
             array(
                 'alpha',
@@ -158,11 +227,11 @@ class NodeTest extends \PHPUnit_Framework_TestCase{
 
     /**
      *
-     * @dataProvider testGetNodeNameProvider
+     * @dataProvider testGetLastPathSegmentProvider
      */
-    public function testGetNodeName($path, $nodeName){
+    public function testGetLastPathSegment($path, $nodeName){
         $n = new Node($path);
-        $this->assertEquals($nodeName, $n->getNodeName());
+        $this->assertEquals($nodeName, $n->getLastPathSegment());
     }
 
     /**
@@ -600,7 +669,6 @@ class NodeTest extends \PHPUnit_Framework_TestCase{
 
         $nodeData = array(
             'alpha',
-            'alpha-2',
             'alpha/beta',
             'alpha/beta-2',
             'alpha/beta/gamma',
@@ -619,24 +687,25 @@ class NodeTest extends \PHPUnit_Framework_TestCase{
             $c->addNode($n);
         }
 
-        $expected = array();
+
         $expected = array(
             'url'                 => '/alpha/',
             'path'                => 'alpha',
-            'display_name'        => 'alpha',
+            'display_name'        => 'Alpha',
             'template_data'       => Array(),
             'depth'               => 1,
-            'is_first_child'      => false,
-            'is_last_child'       => false,
+            'is_first_child'      => true,
+            'is_last_child'       => true,
             'is_current_root'     => false,
             'is_current'          => false,
             'is_current_ancestor' => false,
             'children'            => Array(),
+            'display_order'       => 1,
         );
         $expected['children'][0] = array(
             'url'                 => '/alpha/beta/',
             'path'                => 'alpha/beta',
-            'display_name'        => 'beta',
+            'display_name'        => 'Beta',
             'template_data'       => Array(),
             'depth'               => 2,
             'is_first_child'      => true,
@@ -650,7 +719,7 @@ class NodeTest extends \PHPUnit_Framework_TestCase{
         $expected['children'][1] = array(
             'url'                 => '/alpha/beta-2/',
             'path'                => 'alpha/beta-2',
-            'display_name'        => 'beta-2',
+            'display_name'        => 'Beta 2',
             'template_data'       => Array(),
             'depth'               => 2,
             'is_first_child'      => false,
@@ -665,7 +734,7 @@ class NodeTest extends \PHPUnit_Framework_TestCase{
         $expected['children'][0]['children'][0] = array(
             'url'                 => '/alpha/beta/gamma/',
             'path'                => 'alpha/beta/gamma',
-            'display_name'        => 'gamma',
+            'display_name'        => 'Gamma',
             'template_data'       => Array(),
             'depth'               => 3,
             'is_first_child'      => true,
@@ -680,7 +749,7 @@ class NodeTest extends \PHPUnit_Framework_TestCase{
         $expected['children'][0]['children'][1] = array(
             'url'                 => '/alpha/beta/gamma-2/',
             'path'                => 'alpha/beta/gamma-2',
-            'display_name'        => 'gamma-2',
+            'display_name'        => 'Gamma 2',
             'template_data'       => Array(),
             'depth'               => 3,
             'is_first_child'      => false,
@@ -694,7 +763,7 @@ class NodeTest extends \PHPUnit_Framework_TestCase{
         $expected['children'][0]['children'][1]['children'][0] = array(
             'url'                 => '/alpha/beta/gamma-2/no-siblings/',
             'path'                => 'alpha/beta/gamma-2/no-siblings',
-            'display_name'        => 'no-siblings',
+            'display_name'        => 'No Siblings',
             'template_data'       => Array(),
             'depth'               => 4,
             'is_first_child'      => true,
@@ -709,7 +778,7 @@ class NodeTest extends \PHPUnit_Framework_TestCase{
         $expected['children'][0]['children'][0]['children'][0] = array(
             'url'                 => '/alpha/beta/gamma/delta/',
             'path'                => 'alpha/beta/gamma/delta',
-            'display_name'        => 'delta',
+            'display_name'        => 'Delta',
             'template_data'       => Array(),
             'depth'               => 4,
             'is_first_child'      => true,
@@ -724,7 +793,7 @@ class NodeTest extends \PHPUnit_Framework_TestCase{
         $expected['children'][0]['children'][0]['children'][1] = array(
             'url'                 => '/alpha/beta/gamma/delta-2/',
             'path'                => 'alpha/beta/gamma/delta-2',
-            'display_name'        => 'delta-2',
+            'display_name'        => 'Delta 2',
             'template_data'       => Array(),
             'depth'               => 4,
             'is_first_child'      => false,
@@ -735,8 +804,464 @@ class NodeTest extends \PHPUnit_Framework_TestCase{
             'children'            => Array(),
             'display_order'       => 2,
         );
+        $output = $nodes['alpha']->prepareForTemplate($c, array($nodes['alpha']));
+        $this->assertEquals($expected, $output);
+    }
 
-        $this->assertEquals($expected, $nodes['alpha']->prepareForTemplate($c));
+    static public function testFilterCallbackProvider(){
+        return array(
+            // test group 1
+            // testing single node
+            array(
+                // first param
+                array(
+                    'nodes' => array(
+                        array(
+                            // make node with this data
+                            'constructor_array'           => array(
+                                'path' => 'alpha'
+                            ),
+                            'current_node_path'           => null,
+                            'current_node_ancestor_paths' => array(),
+                            'expected'                    => array(
+                                'sorted_sibling_paths'        => array(
+                                    'alpha'
+                                ),
+                                'current_node_path'           => null,
+                                'current_node_ancestor_paths' => array(),
+                                'output'                      => array(
+                                    'url'                 => '/alpha/',
+                                    'path'                => 'alpha',
+                                    'display_name'        => 'Alpha',
+                                    'template_data'       => Array(),
+                                    'depth'               => 1,
+                                    'is_first_child'      => true,
+                                    'is_last_child'       => true,
+                                    'is_current_root'     => false,
+                                    'is_current'          => false,
+                                    'is_current_ancestor' => false,
+                                    'display_order'       => 1,
+                                ),
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+            // test group 2
+            // testing first/last child and display_order
+            array(
+                array(
+                    'nodes' => array(
+                        array(
+                            // make node with this data
+                            'constructor_array'           => array(
+                                'path' => 'alpha-1'
+                            ),
+                            'current_node_path'           => null,
+                            'current_node_ancestor_paths' => array(),
+                            'expected'                    => array(
+                                'sorted_sibling_paths'        => array(
+                                    'alpha-1',
+                                    'alpha-2',
+                                    'alpha-3',
+                                ),
+                                'current_node_path'           => null,
+                                'current_node_ancestor_paths' => array(),
+                                'output'                      => array(
+                                    'url'                 => '/alpha-1/',
+                                    'path'                => 'alpha-1',
+                                    'display_name'        => 'Alpha 1',
+                                    'template_data'       => Array(),
+                                    'depth'               => 1,
+                                    'is_first_child'      => true,
+                                    'is_last_child'       => false,
+                                    'is_current_root'     => false,
+                                    'is_current'          => false,
+                                    'is_current_ancestor' => false,
+                                    'display_order'       => 1,
+                                ),
+                            ),
+                        ),
+                        array(
+                            // make node with this data
+                            'constructor_array'           => array(
+                                'path' => 'alpha-2'
+                            ),
+                            'current_node_path'           => null,
+                            'current_node_ancestor_paths' => array(),
+                            'expected'                    => array(
+                                'sorted_sibling_paths'        => array(
+                                    'alpha-1',
+                                    'alpha-2',
+                                    'alpha-3',
+                                ),
+                                'current_node_path'           => null,
+                                'current_node_ancestor_paths' => array(),
+                                'output'                      => array(
+                                    'url'                 => '/alpha-2/',
+                                    'path'                => 'alpha-2',
+                                    'display_name'        => 'Alpha 2',
+                                    'template_data'       => Array(),
+                                    'depth'               => 1,
+                                    'is_first_child'      => false,
+                                    'is_last_child'       => false,
+                                    'is_current_root'     => false,
+                                    'is_current'          => false,
+                                    'is_current_ancestor' => false,
+                                    'display_order'       => 2,
+                                ),
+                            ),
+                        ),
+                        array(
+                            // make node with this data
+                            'constructor_array'           => array(
+                                'path' => 'alpha-3'
+                            ),
+                            'current_node_path'           => null,
+                            'current_node_ancestor_paths' => array(),
+                            'expected'                    => array(
+                                'sorted_sibling_paths'        => array(
+                                    'alpha-1',
+                                    'alpha-2',
+                                    'alpha-3',
+                                ),
+                                'current_node_path'           => null,
+                                'current_node_ancestor_paths' => array(),
+                                'output'                      => array(
+                                    'url'                 => '/alpha-3/',
+                                    'path'                => 'alpha-3',
+                                    'display_name'        => 'Alpha 3',
+                                    'template_data'       => Array(),
+                                    'depth'               => 1,
+                                    'is_first_child'      => false,
+                                    'is_last_child'       => true,
+                                    'is_current_root'     => false,
+                                    'is_current'          => false,
+                                    'is_current_ancestor' => false,
+                                    'display_order'       => 3,
+                                ),
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+            // test group 3
+            // testing first/last child
+            // display_order of child nodes
+            // current node and ancestors
+            array(
+                array(
+                    'nodes' => array(
+                        array(
+                            // make node with this data
+                            'constructor_array'           => array(
+                                'path' => 'alpha'
+                            ),
+                            'current_node_path'           => 'alpha/beta-2',
+                            'current_node_ancestor_paths' => array('alpha'),
+                            'expected'                    => array(
+                                'sorted_sibling_paths'        => array(
+                                    'alpha',
+                                ),
+                                'current_node_path'           => 'alpha/beta-2',
+                                'current_node_ancestor_paths' => array('alpha'),
+                                'output'                      => array(
+                                    'url'                 => '/alpha/',
+                                    'path'                => 'alpha',
+                                    'display_name'        => 'Alpha',
+                                    'template_data'       => Array(),
+                                    'depth'               => 1,
+                                    'is_first_child'      => true,
+                                    'is_last_child'       => true,
+                                    'is_current_root'     => true,
+                                    'is_current'          => false,
+                                    'is_current_ancestor' => true,
+                                    'display_order'       => 1,
+                                ),
+                            ),
+                        ),
+                        array(
+                            // make node with this data
+                            'constructor_array'           => array(
+                                'path' => 'alpha/beta-1'
+                            ),
+                            'current_node_path'           => 'alpha/beta-2',
+                            'current_node_ancestor_paths' => array('alpha'),
+                            'expected'                    => array(
+                                'sorted_sibling_paths'        => array(
+                                    'alpha/beta-1',
+                                    'alpha/beta-2',
+                                    'alpha/beta-3',
+                                ),
+                                'current_node_path'           => 'alpha/beta-2',
+                                'current_node_ancestor_paths' => array('alpha'),
+                                'output'                      => array(
+                                    'url'                 => '/alpha/beta-1/',
+                                    'path'                => 'alpha/beta-1',
+                                    'display_name'        => 'Beta 1',
+                                    'template_data'       => Array(),
+                                    'depth'               => 2,
+                                    'is_first_child'      => true,
+                                    'is_last_child'       => false,
+                                    'is_current_root'     => false,
+                                    'is_current'          => false,
+                                    'is_current_ancestor' => false,
+                                    'display_order'       => 1,
+                                ),
+                            ),
+                        ),
+                        array(
+                            // make node with this data
+                            'constructor_array'           => array(
+                                'path' => 'alpha/beta-2'
+                            ),
+                            'current_node_path'           => 'alpha/beta-2',
+                            'current_node_ancestor_paths' => array('alpha'),
+                            'expected'                    => array(
+                                'sorted_sibling_paths'        => array(
+                                    'alpha/beta-1',
+                                    'alpha/beta-2',
+                                    'alpha/beta-3',
+                                ),
+                                'current_node_path'           => 'alpha/beta-2',
+                                'current_node_ancestor_paths' => array('alpha'),
+                                'output'                      => array(
+                                    'url'                 => '/alpha/beta-2/',
+                                    'path'                => 'alpha/beta-2',
+                                    'display_name'        => 'Beta 2',
+                                    'template_data'       => Array(),
+                                    'depth'               => 2,
+                                    'is_first_child'      => false,
+                                    'is_last_child'       => false,
+                                    'is_current_root'     => false,
+                                    'is_current'          => true,
+                                    'is_current_ancestor' => false,
+                                    'display_order'       => 2,
+                                ),
+                            ),
+                        ),
+                        array(
+                            // make node with this data
+                            'constructor_array'           => array(
+                                'path' => 'alpha/beta-3',
+                            ),
+                            'current_node_path'           => 'alpha/beta-2',
+                            'current_node_ancestor_paths' => array('alpha'),
+                            'expected'                    => array(
+                                'sorted_sibling_paths'        => array(
+                                    'alpha/beta-1',
+                                    'alpha/beta-2',
+                                    'alpha/beta-3',
+                                ),
+                                'current_node_path'           => 'alpha/beta-2',
+                                'current_node_ancestor_paths' => array('alpha'),
+                                'output'                      => array(
+                                    'url'                 => '/alpha/beta-3/',
+                                    'path'                => 'alpha/beta-3',
+                                    'display_name'        => 'Beta 3',
+                                    'template_data'       => Array(),
+                                    'depth'               => 2,
+                                    'is_first_child'      => false,
+                                    'is_last_child'       => true,
+                                    'is_current_root'     => false,
+                                    'is_current'          => false,
+                                    'is_current_ancestor' => false,
+                                    'display_order'       => 3,
+                                ),
+                            ),
+                        ),
+                    ),
+                ),
+                // test group 3
+                // testing first/last child
+                // reversed display_order of child nodes
+                // current node and ancestors
+                array(
+                    array(
+                        'nodes' => array(
+                            array(
+                                // make node with this data
+                                'constructor_array'           => array(
+                                    'path' => 'alpha'
+                                ),
+                                'current_node_path'           => 'alpha/beta-1',
+                                'current_node_ancestor_paths' => array('alpha'),
+                                'expected'                    => array(
+                                    'sorted_sibling_paths'        => array(
+                                        'alpha',
+                                    ),
+                                    'current_node_path'           => 'alpha/beta-1',
+                                    'current_node_ancestor_paths' => array('alpha'),
+                                    'output'                      => array(
+                                        'url'                 => '/alpha/',
+                                        'path'                => 'alpha',
+                                        'display_name'        => 'Alpha',
+                                        'template_data'       => Array(),
+                                        'depth'               => 1,
+                                        'is_first_child'      => true,
+                                        'is_last_child'       => true,
+                                        'is_current_root'     => true,
+                                        'is_current'          => false,
+                                        'is_current_ancestor' => true,
+                                        'display_order'       => 1,
+                                    ),
+                                ),
+                            ),
+                            array(
+                                // make node with this data
+                                'constructor_array'           => array(
+                                    'path' => 'alpha/beta-1'
+                                ),
+                                'current_node_path'           => 'alpha/beta-1',
+                                'current_node_ancestor_paths' => array('alpha'),
+                                'expected'                    => array(
+                                    'sorted_sibling_paths'        => array(
+                                        'alpha/beta-3',
+                                        'alpha/beta-2',
+                                        'alpha/beta-1',
+                                    ),
+                                    'current_node_path'           => 'alpha/beta-1',
+                                    'current_node_ancestor_paths' => array('alpha'),
+                                    'output'                      => array(
+                                        'url'                 => '/alpha/beta-1/',
+                                        'path'                => 'alpha/beta-1',
+                                        'display_name'        => 'Beta 1',
+                                        'template_data'       => Array(),
+                                        'depth'               => 2,
+                                        'is_first_child'      => true,
+                                        'is_last_child'       => false,
+                                        'is_current_root'     => false,
+                                        'is_current'          => false,
+                                        'is_current_ancestor' => false,
+                                        'display_order'       => 3,
+                                    ),
+                                ),
+                            ),
+                            array(
+                                // make node with this data
+                                'constructor_array'           => array(
+                                    'path' => 'alpha/beta-2'
+                                ),
+                                'current_node_path'           => 'alpha/beta-1',
+                                'current_node_ancestor_paths' => array('alpha'),
+                                'expected'                    => array(
+                                    'sorted_sibling_paths'        => array(
+                                        'alpha/beta-3',
+                                        'alpha/beta-2',
+                                        'alpha/beta-1',
+                                    ),
+                                    'current_node_path'           => 'alpha/beta-1',
+                                    'current_node_ancestor_paths' => array('alpha'),
+                                    'output'                      => array(
+                                        'url'                 => '/alpha/beta-2/',
+                                        'path'                => 'alpha/beta-2',
+                                        'display_name'        => 'Beta 2',
+                                        'template_data'       => Array(),
+                                        'depth'               => 2,
+                                        'is_first_child'      => false,
+                                        'is_last_child'       => false,
+                                        'is_current_root'     => false,
+                                        'is_current'          => true,
+                                        'is_current_ancestor' => false,
+                                        'display_order'       => null,
+                                    ),
+                                ),
+                            ),
+                            array(
+                                // make node with this data
+                                'constructor_array'           => array(
+                                    'path' => 'alpha/beta-3',
+                                ),
+                                'current_node_path'           => 'alpha/beta-1',
+                                'current_node_ancestor_paths' => array('alpha'),
+                                'expected'                    => array(
+                                    'sorted_sibling_paths'        => array(
+                                        'alpha/beta-3',
+                                        'alpha/beta-2',
+                                        'alpha/beta-1',
+                                    ),
+                                    'current_node_path'           => 'alpha/beta-1',
+                                    'current_node_ancestor_paths' => array('alpha'),
+                                    'output'                      => array(
+                                        'url'                 => '/alpha/beta-3/',
+                                        'path'                => 'alpha/beta-3',
+                                        'display_name'        => 'Beta 3',
+                                        'template_data'       => Array(),
+                                        'depth'               => 2,
+                                        'is_first_child'      => false,
+                                        'is_last_child'       => true,
+                                        'is_current_root'     => false,
+                                        'is_current'          => false,
+                                        'is_current_ancestor' => false,
+                                        'display_order'       => 1,
+                                    ),
+                                ),
+                            ),
+                        ),
+                    ),
+                ),
+            ),
+        );
+    }
+
+    /**
+     *
+     * @dataProvider testFilterCallbackProvider
+     * @group latest
+     */
+    public function testFilterCallback($testData){
+
+        $testNodeArr = $testData['nodes'];
+        $nodes = array();
+        $c = new Collection();
+
+        foreach($testNodeArr as $arr){
+            $contructorArr = $arr['constructor_array'];
+            $path = $contructorArr['path'];
+            $n = new Node($contructorArr);
+            $nodes[$path] = $n;
+            $c->addNode($n);
+        }
+
+        $testObj = $this;
+
+        foreach($testNodeArr as $testNode){
+
+            $path = $testNode['constructor_array']['path'];
+            $expectedNode = $nodes[$path];
+            $expectedArr = $testNode['expected'];
+            $expectedCurrentNodePath = $expectedArr['current_node_path'];
+            $expectedCurrentNode = null;
+            if($expectedCurrentNodePath){
+                $expectedCurrentNode = $nodes[$expectedCurrentNodePath];
+            }
+            $expectedCurrentNodeAncestorPaths = $expectedArr['current_node_ancestor_paths'];
+            $expectedOutput = $expectedArr['output'];
+
+            $expectedSortedSiblings = array();
+
+            foreach($expectedArr['sorted_sibling_paths'] as $path){
+                $expectedSortedSiblings[] = $nodes[$path];
+            }
+
+            // make sure passed params are correct
+            $filter = function($node, $output, $collection, $sortedSiblings, $currentNode, $currentNodeAncestorPaths) use($expectedNode, $testObj, $c, $expectedSortedSiblings, $expectedCurrentNode, $expectedCurrentNodeAncestorPaths, $expectedOutput){
+                    $testObj->assertEquals($expectedNode, $node, '!= Expected $node');
+                    $testObj->assertEquals($expectedOutput, $output, '!= Expected $output');
+                    $testObj->assertEquals($c, $collection, '!= Expected $collection');
+                    $testObj->assertEquals($expectedCurrentNode, $currentNode, '!= Expected $currentNode');
+                    $testObj->assertEquals($expectedCurrentNodeAncestorPaths, $currentNodeAncestorPaths, '!= Expected $currentNodeAncestorPaths');
+                    $testObj->assertEquals($expectedSortedSiblings, $sortedSiblings);
+                };
+
+            $currentNodePath = $testNode['current_node_path'];
+            $currentNode = null;
+            if($currentNodePath){
+                $currentNode = $nodes[$currentNodePath];
+            }
+            $currentNodeAncestorPaths = $testNode['current_node_ancestor_paths'];
+            $expectedNode->prepareForTemplate($c, $expectedSortedSiblings, $currentNode, $currentNodeAncestorPaths, $filter);
+        }
     }
 
 }

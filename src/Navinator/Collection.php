@@ -264,7 +264,7 @@ class Collection implements \Countable, \ArrayAccess{
             }
 
             // set current and find current root parent
-            if(!$exactMatchOnly && self::StrStartsWith($node->url, $url)){
+            if(!$exactMatchOnly && !$node->current_only_on_exact_url_match && self::StrStartsWith($node->url, $url)){
                 if(!empty($currentNode)){
                     $currentNodeSegments = $currentNode->getPathArray();
                     $nodeSegments = $node->getPathArray();
@@ -345,7 +345,7 @@ class Collection implements \Countable, \ArrayAccess{
         $output = array();
 
         foreach($sortedRootNodes as $node){
-            $output[] = $node->prepareForTemplate($this, $currentNode, $currentNodeAncestorPaths, $filter);
+            $output[] = $node->prepareForTemplate($this, $sortedRootNodes, $currentNode, $currentNodeAncestorPaths, $sortedRootNodes, $filter);
         }
 
         return $output;
