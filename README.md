@@ -2,6 +2,7 @@ Navinator
 =========
 
 [![Build Status](https://travis-ci.org/unstoppablecarl/navinator.png)](https://travis-ci.org/unstoppablecarl/navinator)
+[![Coverage Status](https://coveralls.io/repos/unstoppablecarl/navinator/badge.png?branch=master)](https://coveralls.io/r/unstoppablecarl/navinator?branch=master)
 
 **Navinator** is a php package for fexibly managing navigation data for views.
 
