@@ -12,33 +12,6 @@ class NodeTest extends \PHPUnit_Framework_TestCase{
 
     }
 
-
-    static public function testHumanizeStrProvider(){
-        return array(
-            array(
-                'alpha',
-                'Alpha',
-            ),
-            array(
-                'alpha-beta',
-                'Alpha Beta',
-            ),
-            array(
-                'alpha_beta',
-                'Alpha Beta',
-            ),
-        );
-    }
-
-    /**
-     *
-     * @dataProvider testHumanizeStrProvider
-     */
-    public function testHumanizeStr($str, $expected){
-        $n = new Node('x');
-        $this->assertEquals($expected, $n->humanizeString($str));
-    }
-
     static public function testConstructProvider(){
         return array(
             array(
@@ -284,6 +257,58 @@ class NodeTest extends \PHPUnit_Framework_TestCase{
         $this->assertEquals($nodes['foo/bar'], $nodes['foo/bar/baz']->getParent($c));
         // assert foo/bar/baz == parent of foo/bar/baz/blam
         $this->assertEquals($nodes['foo/bar/baz'], $nodes['foo/bar/baz/blam']->getParent($c));
+    }
+
+    /**
+     * @covers Navinator\Node::getRootParentPath
+     */
+    public function testGetRootParentPath(){
+
+        $nodeData = array(
+            'alpha',
+            'alpha-2',
+            'alpha/beta',
+            'alpha/beta-2',
+            'alpha/beta/gamma',
+            'alpha/beta/gamma-2',
+            'alpha/beta/gamma/delta',
+            'alpha/beta/gamma/delta-2',
+            'foo',
+            'foo-2',
+            'foo/bar',
+            'foo/bar-2',
+            'foo/bar/baz',
+            'foo/bar/baz-2',
+            'foo/bar/baz/blam',
+            'foo/bar/baz/blam-2',
+        );
+
+        $nodes = array();
+        $c = new Collection();
+
+        foreach($nodeData as $path){
+            $n = new Node($path);
+            $nodes[$path] = $n;
+            $c->addNode($n);
+        }
+
+        // assert false == root parent of alpha
+        $this->assertEquals(false, $nodes['alpha']->getRootParentPath());
+        // assert alpha == root parent of alpha/beta
+        $this->assertEquals('alpha', $nodes['alpha/beta']->getRootParentPath());
+        // assert alpha == root parent of alpha/beta/gamma
+        $this->assertEquals('alpha', $nodes['alpha/beta/gamma']->getRootParentPath());
+        // assert alpha == root parent of alpha/beta/gamma/delta
+        $this->assertEquals('alpha', $nodes['alpha/beta/gamma/delta']->getRootParentPath());
+
+        // assert false == root parent of foo
+        $this->assertEquals(false, $nodes['foo']->getRootParentPath());
+        // assert foo == root parent of foo/bar
+        $this->assertEquals('foo', $nodes['foo/bar']->getRootParentPath());
+        // assert foo == root parent of foo/bar/baz
+        $this->assertEquals('foo', $nodes['foo/bar/baz']->getRootParentPath());
+        // assert foo == root parent of foo/bar/baz/blam
+        $this->assertEquals('foo', $nodes['foo/bar/baz/blam']->getRootParentPath());
     }
 
     /**

@@ -88,7 +88,7 @@ class Node{
             $this->setPath($path);
 
             if($displayName === null){
-                $displayName = $this->humanizeString($this->getLastPathSegment());
+                $displayName = StringHelper::humanizeString($this->getLastPathSegment());
             }
 
             $this->display_name = $displayName;
@@ -119,7 +119,7 @@ class Node{
                 $this->{$key} = $val;
             }
             if(!$this->display_name){
-                $this->display_name = $this->humanizeString($this->getLastPathSegment());
+                $this->display_name = StringHelper::humanizeString($this->getLastPathSegment());
             }
             if(!$this->url){
                 $this->url = '/' . $this->path . '/';
@@ -193,17 +193,29 @@ class Node{
     }
 
     /**
+     * Retrieves this node's root parent path or false if it has none
+     * @param \Navinator\Collection $collection Collection context to get the root parent node from
+     * @return \Drive\Data\Nav\Node|bool
+     */
+    public function getRootParentPath(){
+        if($this->getDepth() == 1){
+            return false;
+        }
+        $pathArray = $this->getPathArray();
+        return $pathArray[0];
+    }
+
+    /**
      * Retrieves this node's root parent node object or false if it has none
      * @param \Navinator\Collection $collection Collection context to get the root parent node from
      * @return \Drive\Data\Nav\Node|bool
      */
     public function getRootParent(\Navinator\Collection $collection){
-        if($this->getDepth() == 1){
-            return false;
+        $rootParentPath = $this->getRootParentPath();
+        if($rootParentPath){
+            return $collection->getNode($rootParentPath);
         }
-        $pathArray = $this->getPathArray();
-        $rootParentPath = $pathArray[0];
-        return $collection->getNode($rootParentPath);
+        return false;
     }
 
     /**
@@ -213,7 +225,7 @@ class Node{
      */
     public function hasChildren(\Navinator\Collection $collection){
         foreach($collection->getNode() as $node){
-            if(\Navinator\Collection::strStartsWith($this->getPath() . '/', $node->getPath()) && $node->getDepth() == $this->getDepth() + 1){
+            if(StringHelper::strStartsWith($this->getPath() . '/', $node->getPath()) && $node->getDepth() == $this->getDepth() + 1){
                 return true;
             }
         }
@@ -228,7 +240,7 @@ class Node{
     public function getChildren(\Navinator\Collection $collection){
         $childNodes = array();
         foreach($collection->getNode() as $node){
-            if(\Navinator\Collection::strStartsWith($this->getPath() . '/', $node->getPath()) && $node->getDepth() == $this->getDepth() + 1){
+            if(StringHelper::strStartsWith($this->getPath() . '/', $node->getPath()) && $node->getDepth() == $this->getDepth() + 1){
                 $childNodes[$node->getPath()] = $node;
             }
         }
@@ -279,7 +291,8 @@ class Node{
     public function getDescendants(\Navinator\Collection $collection){
         $childNodes = array();
         foreach($collection->getNode() as $node){
-            if(\Navinator\Collection::strStartsWith($this->getPath() . '/', $node->getPath()) && $node->getDepth() > $this->getDepth()){
+            $prefix = $this->getPath() . '/';
+            if($node->getDepth() > $this->getDepth() && StringHelper::strStartsWith($prefix, $node->getPath())){
                 $childNodes[$node->getPath()] = $node;
             }
         }
@@ -299,7 +312,7 @@ class Node{
         } else{
             $parentPath = $this->getParentPath();
             foreach($collection->getNode() as $node){
-                if(\Navinator\Collection::strStartsWith($parentPath . '/', $node->getPath()) && $node->getDepth() == $depth){
+                if(StringHelper::strStartsWith($parentPath . '/', $node->getPath()) && $node->getDepth() == $depth){
                     $siblings[$node->getPath()] = $node;
                 }
             }
@@ -320,14 +333,6 @@ class Node{
             return $path;
         }
         return substr($path, strrpos($path, '/') + 1, strlen($path));
-    }
-
-    /**
-     * Replaces _ and - with space and uppercases words
-     * @param string $str the string to humanize
-     */
-    public function humanizeString($str){
-        return ucwords(str_replace(array('-', '_'), ' ', $str));
     }
 
     /**

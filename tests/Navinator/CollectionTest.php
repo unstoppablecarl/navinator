@@ -13,73 +13,7 @@ class CollectionTest extends \PHPUnit_Framework_TestCase{
 
     }
 
-    public function testStartsWithProvider(){
-        return array(
-            array('foo', 'foo-bar', true),
-            array('00', 'foo-bar', false),
-            array('', 'foo-bar', true),
-            array('-', '-bar', true),
-        );
-    }
 
-    /**
-     *
-     * @dataProvider testStartsWithProvider
-     */
-    public function testStartsWith($prefix, $string, $outcome){
-        $this->assertEquals($outcome, \Navinator\Collection::strStartsWith($prefix, $string));
-    }
-
-    public function testEndsWithProvider(){
-        return array(
-            array('bar', 'foo-bar', true),
-            array('ba', 'foo-bar', false),
-            array('', 'foo-bar', true),
-            array('-', 'foo-', true),
-        );
-    }
-
-    /**
-     *
-     * @dataProvider testEndsWithProvider
-     */
-    public function testEndsWith($suffix, $string, $outcome){
-        $this->assertEquals($outcome, \Navinator\Collection::strEndsWith($suffix, $string));
-    }
-
-    public function testRemoveFromBeginningProvider(){
-        return array(
-            array('foo', 'foo-bar', '-bar'),
-            array('', 'foo-bar', 'foo-bar'),
-            array('foo-bar', 'foo-bar', ''),
-            array('foo-', 'foo-bar', 'bar'),
-        );
-    }
-
-    /**
-     *
-     * @dataProvider testRemoveFromBeginningProvider
-     */
-    public function testRemoveFromBeginning($prefix, $string, $outcome){
-        $this->assertEquals($outcome, \Navinator\Collection::strRemoveFromBeginning($prefix, $string));
-    }
-
-    public function testRemoveFromEndProvider(){
-        return array(
-            array('bar', 'foo-bar', 'foo-'),
-            array('', 'foo-bar', 'foo-bar'),
-            array('foo-bar', 'foo-bar', ''),
-            array('-bar', 'foo-bar', 'foo'),
-        );
-    }
-
-    /**
-     *
-     * @dataProvider testRemoveFromEndProvider
-     */
-    public function testRemoveFromEnd($suffix, $string, $outcome){
-        $this->assertEquals($outcome, \Navinator\Collection::strRemoveFromEnd($suffix, $string));
-    }
 
     public function testAdd(){
         $nodeData = array(
