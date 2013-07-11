@@ -52,11 +52,11 @@ Each node has a directory-like **path** that describes where the node is in the 
     $path = 'articles';
     $node = new Node($path);
     $url = $node->url; // /articles/
-    
+
     $path = 'articles/tags';
     $node = new Node($path);
     $url = $node->url; // /articles/tags/
-    
+
     $path = 'articles/tags/news';
     $node = new Node($path);
     // set the url manually
@@ -83,17 +83,17 @@ The following example generates a simple navigation tree.
   use \Navinator\Collection;
   use \Navinator\Node;
   $collection = new Collection();
-  
+
   // create a node passing the node's path
   // note: a node with path 'my-favorite-sites' has not been added to the collection yet and does not need to be
   $node = new Node('my-favorite-sites/google');
   $node->url = 'http://google.com';
   $node->display_name = 'Google Search';
   $collection->addNode($node);
-  
+
   $node = new Node('my-favorite-sites');
   $node->display_name = 'My Favorite Sites';
-  // if $node->url is not set, the node path is used: 
+  // if $node->url is not set, the node path is used:
   // same as: $node->url = '/my-favorite-sites/';
   $collection->addNode($node);
 
@@ -217,8 +217,8 @@ The output template data can be rendered with a very simple view function.
 function renderSimpleNav($nodes, $depth = 1){
     ?>
     <ul class="depth-<?= $depth ?>">
-        <?php foreach($nodes as $node): 
-            $isFirstChild = 
+        <?php foreach($nodes as $node):
+            $isFirstChild =
         ?>
             <li>
                 <a href="<?= $node['url'] ?>"><?= $node['display_name'] ?></a>
@@ -234,7 +234,7 @@ function renderSimpleNav($nodes, $depth = 1){
 }
 ```
 
-A more extensive example of this simple view is available in [examples/simple-view.php](examples/simple-view.php)
+A more extensive example of this simple view is available in [examples/simple-view/index.php](examples/simple-view/index.php)
 
 License
 -

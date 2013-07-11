@@ -1,16 +1,10 @@
 <?php
-
-require __DIR__ . '/../src/Navinator/Collection.php';
-require __DIR__ . '/../src/Navinator/Node.php';
-require __DIR__ . '/../src/Navinator/Exception.php';
+require_once __DIR__ . '/../bootstrap.php';
 
 function renderSimpleNav($nodes, $depth = 1){
     ?>
     <ul class="depth-<?= $depth ?>">
         <?php foreach($nodes as $node):
-
-            $isFirstChild = $node['is_first_child'];
-            $isLastChild = $node['is_last_child'];
 
             $cssClasses = array('item');
 
@@ -39,7 +33,6 @@ function renderSimpleNav($nodes, $depth = 1){
     </ul>
     <?php
 }
-
 
 function renderSimpleBreadcrumb($nodes){
     ?>
@@ -123,94 +116,6 @@ $collection->addNode($node);
 $currentUrl = '/my-favorite-sites/programming/php/';
 
 $templateData = $collection->prepareForNavTemplate($currentUrl);
-
 $breadcrumbTemplateData = $collection->prepareForBreadcrumbTemplate($currentUrl);
-error_log(print_r($breadcrumbTemplateData, true));
-?>
-<style>
-
-    body, * {
-        font-family: Arial, sans-serif;
-        font-size: 13px;
-    }
 
 
-    ul, li {
-        list-style:none;
-        margin:0;
-        padding:0;
-    }
-
-    .nav {
-        float:left;
-        padding: 5px;
-        background: #eee;
-        border: 1px solid #ddd;
-        margin: 20px;
-    }
-
-    .nav ul.depth-1 {
-        padding-left: 0;
-    }
-
-    .nav li {
-        padding:0;
-        margin:0;
-    }
-
-    .nav li a,
-    .nav li a:visited {
-        display:block;
-        background: #eee;
-        color: #333;
-        text-decoration:none;
-        padding: 3px 20px;
-        line-height: 1.5;
-    }
-
-    .nav li a:hover {
-        background: #ddd;
-    }
-
-    .nav li.active > a {
-        background: #ddd
-    }
-    .nav li.last-child a{
-    }
-
-    .nav .depth-1 li a{
-        font-weight: bold;
-        font-size: 15px;
-        padding-left: 0px;
-    }
-    .nav .depth-2 li a{
-        font-weight: bold;
-        font-size: 13px;
-        padding-left: 20px;
-    }
-    .nav .depth-3 li a{
-        font-weight: normal;
-        padding-left: 40px;
-    }
-
-    .breadcrumb {
-        clear:both;
-        margin: 20px;
-    }
-
-    .breadcrumb ul li {
-        display:inline-block;
-    }
-
-
-</style>
-
-<div class="nav">
-<? renderSimpleNav($templateData); ?>
-</div>
-
-<div class="breadcrumb">
-    <ul>
-    <?php renderSimpleBreadcrumb($breadcrumbTemplateData) ?>
-    </ul>
-</div>
