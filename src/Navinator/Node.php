@@ -43,6 +43,13 @@ class Node{
     public $url;
 
     /**
+     * The display order of the node in relation to it's siblings
+     * Used to initially set the display order of a node in a collection. After being added to a collection this property has no effect on the ordering of a node
+     * @var int
+     */
+    public $display_order;
+
+    /**
      * When false this node will be considered when trying to find the node with url most mathcing the requested url
      * When true this node will only match as the "current" node if the requested url matches this node's ->url exactly
      * @var bool

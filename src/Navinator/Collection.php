@@ -13,7 +13,7 @@ namespace Navinator;
  * @link https://github.com/unstoppablecarl/navinator
  * @author Carl Olsen <unstoppablecarlolsen@gmail.com>
  */
-class Collection implements \Countable, \ArrayAccess{
+class Collection implements \Countable, \ArrayAccess, \Iterator{
 
     /**
      * array of nodes indexed by nodePath
@@ -50,65 +50,80 @@ class Collection implements \Countable, \ArrayAccess{
     /**
      * Add a Drive\Nav\Node object to this collection
      * @param \Navinator\Node $node The node object to add to this collection
-     * @param int $displayOrder The display order of the node in relation to it's siblings
+     * @param int $displayOrderOverride The display order of the node in relation to it's siblings, overrrides the $node->display_order that would be used instead
      * @param bool $autoSetDisplayOrder If true and $displayOrder is empty or a sibling node has the same display order value, the display order is set to the next available number of those siblings.
      * @throws \Exception If a node with the new node's path is already set
      */
-    public function addNode(\Navinator\Node $node, $displayOrder = null, $autoSetDisplayOrder = true){
+    public function addNode(\Navinator\Node $node, $displayOrderOverride = null, $autoSetDisplayOrder = true){
         $nodePath = $node->getPath();
         if($this->hasNode($nodePath)){
             throw new \Navinator\Exception(sprintf('A Node Object with the nodePath "%s" is already assigned to this %s use addNodeIfNotExists(), removeNode() or setNode() to change it.', $nodePath, get_class($this)));
         }
         $this->nodes[$nodePath] = $node;
-        $this->setNodeDisplayOrder($node, $displayOrder, $autoSetDisplayOrder);
+        $this->setNodeDisplayOrder($node, $displayOrderOverride, $autoSetDisplayOrder);
     }
 
     /**
      * Add a Drive\Nav\Node object to this collection
      * @param \Navinator\Node $node The node object to add to this collection
-     * @param int $displayOrder The display order of the node in relation to it's siblings
+     * @param int $displayOrderOverride The display order of the node in relation to it's siblings, overrrides the $node->display_order that would be used instead
      * @param bool $autoSetDisplayOrder If true and $displayOrder is empty or a sibling node has the same display order value, the display order is set to the next available number of those siblings.
      */
-    public function addNodeIfNotExists(\Navinator\Node $node, $displayOrder = null, $autoSetDisplayOrder = true){
+    public function addNodeIfNotExists(\Navinator\Node $node, $displayOrderOverride = null, $autoSetDisplayOrder = true){
         $nodePath = $node->getPath();
         if(!$this->hasNode($nodePath)){
             $this->nodes[$nodePath] = $node;
-            $this->setNodeDisplayOrder($node, $displayOrder, $autoSetDisplayOrder);
+            $this->setNodeDisplayOrder($node, $displayOrderOverride, $autoSetDisplayOrder);
         }
     }
 
     /**
      * Setter for specific node, overwrites existing node path
      * @param \Drive\Data\Nav\Node $node the node object to set
-     * @param int $displayOrder The display order of the node in relation to it's siblings
-     * @param bool $autoSetDisplayOrder If true and $displayOrder is empty or a sibling node has the same display order value, the display order is set to the next available number of those siblings.
+     * @param int $displayOrderOverride The display order of the node in relation to it's siblings, overrrides the $node->display_order that would be used instead
+     * @param bool $autoSetDisplayOrder If true and $displayOrder is empty or a sibling node has the same display order value, the display order is set to the next available display order number of those siblings.
      */
-    public function setNode(\Navinator\Node $node, $displayOrder = null, $autoSetDisplayOrder = false){
+    public function setNode(\Navinator\Node $node, $displayOrderOverride = null, $autoSetDisplayOrder = true){
         $this->nodes[$node->getPath()] = $node;
+        if($displayOrderOverride){
+            $displayOrder = $displayOrderOverride;
+        } else{
+            $displayOrder = $node->display_order;
+        }
         $this->setNodeDisplayOrder($node, $displayOrder, $autoSetDisplayOrder);
     }
 
     /**
-     * Sets a node display order
+     * Set the display order for a node in this collection, overriding $node->display_order
      * @param string|\Navinator\Node $obj Node object or path string
-     * @param int $displayOrder The display order of the node in relation to it's siblings
+     * @param int $displayOrderOverride The display order of the node in relation to it's siblings, overrrides the $node->display_order that would be used instead
      * @param bool $autoSet If true and $displayOrder is empty or a sibling node has the same display order value, the display order is set to the next available number of those siblings.
      */
-    public function setNodeDisplayOrder($obj, $displayOrder = null, $autoSet = true){
-        if($autoSet){
-            $this->autoSetNodeDisplayOrder($obj, $displayOrder);
-        } else{
-            // check if node is part of this collection
-            $node = $this->getNodeFromVar($obj);
-            $path = $node->getPath();
+    public function setNodeDisplayOrder($obj, $displayOrderOverride = null, $autoSet = true){
+        $node = $this->getNodeFromVar($obj);
 
+        if(!$this->hasNode($node)){
+            throw new \Navinator\Exception(sprintf('Attempting to set the collection display order override of a Node Object with the nodePath "%s" that was not found in collection %s.', $node->getPath(), get_class($this)));
+        }
+
+        if($displayOrderOverride){
+            $displayOrder = $displayOrderOverride;
+        } else{
+            $displayOrder = $node->display_order;
+        }
+
+        if($autoSet){
+            $this->autoSetNodeDisplayOrder($node, $displayOrder);
+        } else{
+            $path = $node->getPath();
             $this->node_display_order[$path] = $displayOrder;
         }
     }
 
     /**
      * If node does not have a display order or a sibling node has the same display order value the display order is set to the next available number.
-     * @param type $node
+     * @param \Navinator\Node $node the node to set the display order of
+     * @param int $displayOrder The display order of the node in relation to it's siblings
      */
     protected function autoSetNodeDisplayOrder(\Navinator\Node $node, $displayOrder = null){
         // keep the same by default
@@ -127,16 +142,21 @@ class Collection implements \Countable, \ArrayAccess{
             if(in_array($displayOrder, $siblingDisplayOrders)){
                 //find first gap in sort order list after desired position
                 $start = $displayOrder;
-                foreach($siblingDisplayOrders as $v){
-                    if($v <= $displayOrder){
-                        continue;
-                    }
+                sort($siblingDisplayOrders);
+                if($displayOrder == 1 && count($siblings) == 1){
+                    $newNodeDisplayOrder = 2;
+                } else{
+                    foreach($siblingDisplayOrders as $v){
+                        if($v <= $displayOrder){
+                            continue;
+                        }
 
-                    if($start + 1 != $v){
-                        $newNodeDisplayOrder = $start + 1;
-                        break;
+                        if($start + 1 != $v){
+                            $newNodeDisplayOrder = $start + 1;
+                            break;
+                        }
+                        $start = $v;
                     }
-                    $start = $v;
                 }
             }
         }
@@ -147,7 +167,7 @@ class Collection implements \Countable, \ArrayAccess{
      * Getter for all or specific Drive\Data\Nav\Node
      * @param string $nodePath unique identifier for a node object
      * @exception throws \Exception When A \Drive\Data\Nav\Node with the $nodePath is not found.
-     * @return mixed Array|Drive\Admin\Nav\Item  array of or single Drive\Admin\Nav\Item
+     * @return mixed Array|Navinator\Node  array of or single Drive\Admin\Nav\Item
      */
     public function getNode($nodePath = null){
         if($nodePath === null){
@@ -164,7 +184,7 @@ class Collection implements \Countable, \ArrayAccess{
      * @param \Navinator\Node|string $var Node object or path string
      * @return \Navinator\Node
      */
-    protected function getNodeFromVar($var){
+    public function getNodeFromVar($var){
         if($var instanceof \Navinator\Node){
             return $var;
         }
@@ -176,7 +196,7 @@ class Collection implements \Countable, \ArrayAccess{
      * @param \Navinator\Node|string $var Node object or path string
      * @return \Navinator\Node
      */
-    protected function getPathFromVar($var){
+    public function getPathFromVar($var){
         if($var instanceof \Navinator\Node){
             return $var->getPath();
         }
@@ -204,14 +224,6 @@ class Collection implements \Countable, \ArrayAccess{
     }
 
     /**
-     * Retrieves the number of nodes in this collection
-     * @return int
-     */
-    public function countNodes(){
-        return count($this->nodes);
-    }
-
-    /**
      * Retrieves the nodes in this collection that have no parents ($node->getDepth() == 1)
      * @return type
      */
@@ -226,7 +238,7 @@ class Collection implements \Countable, \ArrayAccess{
     }
 
     /**
-     * retrieves display order of a node
+     * Retrieves display order of a node
      * @param string|\Navinator\Node $obj Node object or path string
      * */
     public function getNodeDisplayOrder($obj){
@@ -235,7 +247,7 @@ class Collection implements \Countable, \ArrayAccess{
     }
 
     /**
-     * retrieves display orders as array
+     * Retrieves display orders as array
      * @param array $nodes
      */
     public function getNodeDisplayOrders($nodes){
@@ -249,9 +261,9 @@ class Collection implements \Countable, \ArrayAccess{
     /**
      * Retrieves the node with $node->url best matching the current url.
      * @param string $url The current url to match against, uses $_SERVER['REQUEST_URI'] if not set
-     * @param bool $exactMatchOnly When true only a node with a url matching exactly will be returned. When false the node with the closest matchin url will be returned.
+     * @param bool $exactMatchOnly When true only a node with a url matching exactly will be returned. When false the node with the closest matchin url will be returned. (nodes with $node->current_only_on_exact_url_match = true will always only be matched on an exact match)
      */
-    protected function getNodeMatchingUrl($url = null, $exactMatchOnly = false){
+    public function getNodeMatchingUrl($url = null, $exactMatchOnly = false){
         if($url === null && isset($_SERVER['REQUEST_URI'])){
             $url = $_SERVER['REQUEST_URI'];
         }
@@ -287,17 +299,17 @@ class Collection implements \Countable, \ArrayAccess{
         $nodes = array();
         foreach($array as $node){
             $nodes[] = array(
-                'node' => $node,
+                'node'          => $node,
                 'display_order' => $this->getNodeDisplayOrder($node),
             );
         }
 
         usort($nodes, function($a, $b){
-                if ($a['display_order'] == $b['display_order']){
+                if($a['display_order'] == $b['display_order']){
                     return 0;
                 }
                 return ($a['display_order'] < $b['display_order']) ? -1 : 1;
-        });
+            });
 
         $output = array();
         foreach($nodes as $item){
@@ -311,10 +323,10 @@ class Collection implements \Countable, \ArrayAccess{
      *  Retrieves node data ready to be used by view
      *
      * The $filter callback method signature should include the follow parameters:
-	 *
-	 *  - **`$node`**:       The node to be filtered
-	 *  - **`$nodeArrayData`**: Node array data to be returned for template
-	 *  - **`$collection`**: this collection object
+     *
+     *  - **`$node`**:       The node to be filtered
+     *  - **`$nodeArrayData`**: Node array data to be returned for template
+     *  - **`$collection`**: this collection object
      *  - **`$currentNode`**: the currently navigated to node
      *  - **`$currentNodeAncestorPaths`**: the currently navigated to node ancestor path
      *
@@ -337,7 +349,7 @@ class Collection implements \Countable, \ArrayAccess{
 
         $currentNodeAncestorPaths = array();
         if($currentNode){
-           $currentNodeAncestorPaths = $currentNode->getAncestorPaths($this);
+            $currentNodeAncestorPaths = $currentNode->getAncestorPaths($this);
         }
 
         $rootNodes = $this->getRootNodes();
@@ -360,8 +372,8 @@ class Collection implements \Countable, \ArrayAccess{
     public function prepareForBreadcrumbTemplate($currentUrl = null, $currentNode = null){
 
         $filter = function($node, $nodeTemplateData, $collection, $sortedSiblings, $currentNode, $currentNodeAncestorPaths){
-            return $nodeTemplateData['is_current'] || $nodeTemplateData['is_current_root'] || $nodeTemplateData['is_current_ancestor'];
-        };
+                return $nodeTemplateData['is_current'] || $nodeTemplateData['is_current_root'] || $nodeTemplateData['is_current_ancestor'];
+            };
         $this->validateNodes();
         if($currentUrl === null){
             $currentUrl = $_SERVER['REQUEST_URI'];
@@ -378,7 +390,7 @@ class Collection implements \Countable, \ArrayAccess{
             $currentNodeAncestorPaths = $currentNode->getAncestorPaths();
             $rootParent = $currentNode->getRootParent($this);
             if($rootParent){
-                $breadcrumbData = array($rootParent->prepareForTemplate($this, array($rootParent), $currentNode,  $currentNodeAncestorPaths, $filter));
+                $breadcrumbData = array($rootParent->prepareForTemplate($this, array($rootParent), $currentNode, $currentNodeAncestorPaths, $filter));
                 return $this->flattenBreadcrumbData($breadcrumbData);
             }
         }
@@ -406,10 +418,10 @@ class Collection implements \Countable, \ArrayAccess{
      * Returns a new collection filtered by the $filterFunc callback
      *
      * The callback method signature should include the follow parameters:
-	 *
-	 *  - **`$node`**:       The node to be filtered
-	 *  - **`$collection`**: The collection being filtered (the original unfiltered collection)
-	 *
+     *
+     *  - **`$node`**:       The node to be filtered
+     *  - **`$collection`**: The collection being filtered (the original unfiltered collection)
+     *
      * @param callback $filterFunc Function to filter nodes - see the method description for details about the method signature
      * @param bool $autoSetDisplayOrder If true, when nodes are added to the new filtered collection object and $displayOrder is empty or a sibling node has the same display order value, the display order is set to the next available number of those siblings
      * @param bool $removeDecendants if true decendants of nodes that filter as false are removed
@@ -527,23 +539,36 @@ class Collection implements \Countable, \ArrayAccess{
         return count($this->nodes);
     }
 
-    /**
-     * Return an iterator
-     * Implements IteratorAggregate
-     * @return ArrayIterator
-     */
-    public function getIterator(){
-        return new \ArrayIterator($this->nodes);
+    public function rewind(){
+        reset($this->nodes);
+    }
+
+    public function current(){
+        return current($this->nodes);
+    }
+
+    public function key(){
+        return key($this->nodes);
+    }
+
+    public function next(){
+        return next($this->nodes);
+    }
+
+    public function valid(){
+        $key = key($this->nodes);
+        $var = ($key !== NULL && $key !== FALSE);
+        return $var;
     }
 
     /**
-	 * Calls a specific method on each object, returning an array of the results
-	 *
-	 * @param  string $method     The method to call
-	 * @param  mixed  $parameter  A parameter to pass for each call to the method
-	 * @param  mixed  ...
-	 * @return array  An array the size of the record set with one result from each record/method
-	 */
+     * Calls a specific method on each object, returning an array of the results
+     *
+     * @param  string $method     The method to call
+     * @param  mixed  $parameter  A parameter to pass for each call to the method
+     * @param  mixed  ...
+     * @return array  An array the size of the record set with one result from each record/method
+     */
     public function call($method){
         $parameters = array_slice(func_get_args(), 1);
         $output = array();
@@ -556,8 +581,6 @@ class Collection implements \Countable, \ArrayAccess{
         }
         return $output;
     }
-
-
 
 }
 
