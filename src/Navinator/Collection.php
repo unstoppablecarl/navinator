@@ -388,12 +388,14 @@ class Collection implements \Countable, \ArrayAccess, \Iterator{
         $currentNodeAncestorPaths = array();
         if($currentNode){
             if($currentNode->getDepth() === 1){
-                $breadcrumbData = array($currentNode->prepareForTemplate($this, array($currentNode), $currentNode, $currentNodeAncestorPaths, $filter));
-                return $this->flattenBreadcrumbData($breadcrumbData);
+                $rootParent = $currentNode;
+                $sortedSiblings = array($currentNode);
+            } else {
+                $currentNodeAncestorPaths = $currentNode->getAncestorPaths();
+                $rootParent = $currentNode->getRootParent($this);
+                $sortedSiblings = array($rootParent);
             }
 
-            $currentNodeAncestorPaths = $currentNode->getAncestorPaths();
-            $rootParent = $currentNode->getRootParent($this);
             if($rootParent){
                 $breadcrumbData = array($rootParent->prepareForTemplate($this, array($rootParent), $currentNode, $currentNodeAncestorPaths, $filter));
                 return $this->flattenBreadcrumbData($breadcrumbData);
