@@ -387,6 +387,11 @@ class Collection implements \Countable, \ArrayAccess, \Iterator{
 
         $currentNodeAncestorPaths = array();
         if($currentNode){
+            if($currentNode->getDepth() === 1){
+                $breadcrumbData = array($currentNode->prepareForTemplate($this, array($currentNode), $currentNode, $currentNodeAncestorPaths, $filter));
+                return $this->flattenBreadcrumbData($breadcrumbData);
+            }
+
             $currentNodeAncestorPaths = $currentNode->getAncestorPaths();
             $rootParent = $currentNode->getRootParent($this);
             if($rootParent){
