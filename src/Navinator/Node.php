@@ -24,6 +24,12 @@ class Node{
     protected $path;
 
     /**
+     * cached depth value derrived from path
+     * @var int
+     */
+    protected $depth;
+
+    /**
      * Display name of node
      *
      * Inteded to be the text within the <a> tag of this node when rendered
@@ -156,6 +162,7 @@ class Node{
             throw new \Navinator\Exception(sprintf('Attempting to set an invalid node path "%s". A node path must be a non-empty string.', $path));
         }
         $this->path = trim($pathString, '/');
+        $this->autoSetDepth();
     }
 
     /**
@@ -171,7 +178,11 @@ class Node{
      * @return int
      */
     public function getDepth(){
-        return count($this->getPathArray());
+        return $this->depth;
+    }
+
+    protected function autoSetDepth(){
+        $this->depth = count($this->getPathArray());
     }
 
     /**
